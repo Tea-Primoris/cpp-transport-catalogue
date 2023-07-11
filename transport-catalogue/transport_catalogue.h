@@ -21,19 +21,19 @@ namespace transport {
 
         Bus(std::string_view number, std::deque<Stop *> &&stops, bool is_circle_route);
 
-        [[nodiscard]] std::string_view get_number() const;
+        [[nodiscard]] std::string_view GetNumber() const;
 
-        [[nodiscard]] size_t get_stops_count() const;
+        [[nodiscard]] size_t GetStopsCount() const;
 
-        [[nodiscard]] size_t count_unique_stops() const;
+        [[nodiscard]] size_t CountUniqueStops() const;
 
-        [[nodiscard]] double get_route_geo_distance() const;
+        [[nodiscard]] double GetRouteGeoDistance() const;
 
-        [[nodiscard]] const std::deque<Stop *> &get_stops() const;
+        [[nodiscard]] const std::deque<Stop *> &GetStops() const;
 
-        [[nodiscard]] std::deque<Stop *> &get_stops();
+        [[nodiscard]] std::deque<Stop *> &GetStops();
 
-        [[nodiscard]] bool is_circle() const {
+        [[nodiscard]] bool IsCircle() const {
             return circle_route_;
         }
 
@@ -43,13 +43,13 @@ namespace transport {
         bool circle_route_ = false;
         double route_distance_ = 0;
 
-        void calculate_distance();
+        void CalculateDistance();
     };
 
     namespace details {
         struct BusComparator {
             bool operator()(const Bus *lhs, const Bus *rhs) const {
-                return lhs->get_number() < rhs->get_number();
+                return lhs->GetNumber() < rhs->GetNumber();
             }
         };
     }
@@ -62,13 +62,13 @@ namespace transport {
 
         Stop(std::string_view name, Coordinates &&coordinates) : name_(name), coordinates_(coordinates) {}
 
-        [[nodiscard]] std::string_view get_name() const;
+        [[nodiscard]] std::string_view GetName() const;
 
-        [[nodiscard]] const Coordinates &get_coordinates() const;
+        [[nodiscard]] const Coordinates &GetCoordinates() const;
 
-        void add_bus(Bus *bus);
+        void AddBus(Bus *bus);
 
-        [[nodiscard]] const std::set<Bus *, details::BusComparator> &get_buses() const;
+        [[nodiscard]] const std::set<Bus *, details::BusComparator> &GetBusses() const;
 
     private:
         std::string name_;
@@ -79,8 +79,8 @@ namespace transport {
     namespace details {
         struct StopPtrHasher {
             size_t operator()(const std::pair<Stop *, Stop *> pair) const {
-                const size_t first_stop_hash = std::hash<std::string_view>{}(pair.first->get_name());
-                const size_t second_stop_hash = std::hash<std::string_view>{}(pair.second->get_name());
+                const size_t first_stop_hash = std::hash<std::string_view>{}(pair.first->GetName());
+                const size_t second_stop_hash = std::hash<std::string_view>{}(pair.second->GetName());
                 return (first_stop_hash * 37) + (second_stop_hash * (37 ^ 2));
             }
         };
@@ -88,29 +88,39 @@ namespace transport {
 
     class Catalogue {
     public:
-        Stop &add_stop(transport::Stop &&stop);
+        Stop &AddStop(transport::Stop &&stop);
 
-        Stop &add_stop(const std::string_view name, double latitude, double longitude);
+        Stop &AddStop(const std::string_view name, Coordinates coordinates);
 
-        void add_bus(Bus &&bus);
+        void AddBus(Bus &&bus);
 
-        void add_bus(std::string_view number, std::vector<std::string> &stops, bool is_circle_route = false);
+        void AddBus(std::string_view number, const std::vector<std::string> &stops, bool is_circle_route = false);
 
-        void add_distance(std::pair<Stop *, Stop *> &stops, int length) {
-            distances_[stops] = length;
+        void AddDistance(Stop &from_stop, Stop &to_stop, int length) {
+            std::pair<transport::Stop *, transport::Stop *> stop_pair;
+            stop_pair.first = &from_stop;
+            stop_pair.second = &to_stop;
+            distances_[stop_pair] = length;
         }
 
-        const Stop &get_stop(std::string_view stop_name) const;
+        const Stop &GetStop(std::string_view stop_name) const;
 
-        Stop &get_stop(std::string_view stop_name);
+        Stop &GetStop(std::string_view stop_name);
 
-        const Bus &get_bus(std::string_view bus_name) const;
+        bool HasStop(std::string_view stop_name) const;
 
-        int get_bus_route_distance(std::string_view bus_name) const;
+        const Bus &GetBus(std::string_view bus_name) const;
 
-        double get_bus_route_geo_distance(std::string_view bus_name) const;
+        bool HasBus(std::string_view bus_name) const;
 
-        int get_distance_between_stops(std::pair<Stop *, Stop *> stops_pair) const {
+        int GetBusRouteDistance(std::string_view bus_name) const;
+
+        double GetBusRouteGeoDistance(std::string_view bus_name) const;
+
+        int GetDistanceBetweenStops(Stop &from_stop, Stop &to_stop) const {
+            std::pair<transport::Stop *, transport::Stop *> stops_pair;
+            stops_pair.first = &from_stop;
+            stops_pair.second = &to_stop;
             try {
                 return distances_.at(stops_pair);
             }

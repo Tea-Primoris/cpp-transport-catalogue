@@ -1,101 +1,107 @@
 #include "transport_catalogue.h"
 
 namespace transport {
-    Stop &Catalogue::add_stop(transport::Stop &&stop) {
+    Stop &Catalogue::AddStop(transport::Stop &&stop) {
         stops_.push_back(std::move(stop));
         Stop &added_stop = stops_.back();
-        stopnames_to_stops_[added_stop.get_name()] = &added_stop;
+        stopnames_to_stops_[added_stop.GetName()] = &added_stop;
         return added_stop;
     }
 
-    Stop &Catalogue::add_stop(const std::string_view name, double latitude, double longitude) {
-        return add_stop(std::move(Stop{name, latitude, longitude}));
+    Stop &Catalogue::AddStop(const std::string_view name, Coordinates coordinates) {
+        return AddStop(std::move(Stop{name, coordinates.lat, coordinates.lng}));
     }
 
-    void Catalogue::add_bus(std::string_view number, std::vector<std::string> &stops, bool is_circle_route) {
+    void Catalogue::AddBus(std::string_view number, const std::vector<std::string> &stops, bool is_circle_route) {
         std::deque<Stop *> stops_deque;
         for (std::string_view stop: stops) {
             stops_deque.push_back(stopnames_to_stops_.at(stop));
         }
-        add_bus(Bus{number, std::move(stops_deque), is_circle_route});
+        AddBus(Bus{number, std::move(stops_deque), is_circle_route});
     }
 
-    void Catalogue::add_bus(Bus &&bus) {
+    void Catalogue::AddBus(Bus &&bus) {
         buses_.push_back(std::move(bus));
         Bus &added_bus = buses_.back();
-        for (Stop *stop: added_bus.get_stops()) {
-            stop->add_bus(&added_bus);
+        for (Stop *stop: added_bus.GetStops()) {
+            stop->AddBus(&added_bus);
         }
-        busnumber_to_buses_[added_bus.get_number()] = &added_bus;
+        busnumber_to_buses_[added_bus.GetNumber()] = &added_bus;
     }
 
-    const Stop &Catalogue::get_stop(std::string_view stop_name) const {
+    const Stop &Catalogue::GetStop(std::string_view stop_name) const {
         return *stopnames_to_stops_.at(stop_name);
     }
 
-    Stop &Catalogue::get_stop(std::string_view stop_name) {
+    Stop &Catalogue::GetStop(std::string_view stop_name) {
         return *stopnames_to_stops_.at(stop_name);
     }
 
-    const Bus &Catalogue::get_bus(std::string_view bus_name) const {
+    bool Catalogue::HasStop(std::string_view stop_name) const {
+        return stopnames_to_stops_.find(stop_name) != stopnames_to_stops_.end();
+    }
+
+    const Bus &Catalogue::GetBus(std::string_view bus_name) const {
         return *busnumber_to_buses_.at(bus_name);
     }
 
-    int Catalogue::get_bus_route_distance(std::string_view bus_name) const {
+    bool Catalogue::HasBus(std::string_view bus_name) const {
+        return busnumber_to_buses_.find(bus_name) != busnumber_to_buses_.end();
+    }
+
+    int Catalogue::GetBusRouteDistance(std::string_view bus_name) const {
         const Bus *bus = busnumber_to_buses_.at(bus_name);
         int distance = 0;
-        const auto &route = bus->get_stops();
-        bool is_circle_route = bus->is_circle();
+        const auto &route = bus->GetStops();
+        bool is_circle_route = bus->IsCircle();
         for (auto iterator = next(route.begin()); iterator != route.end(); iterator = next(iterator)) {
-            std::pair<Stop *, Stop *> stops_pair{*(iterator - 1), *iterator};
-            distance += get_distance_between_stops(stops_pair);
+            distance += GetDistanceBetweenStops(**(iterator - 1), **iterator);
             if (!is_circle_route) {
-                std::pair<Stop *, Stop *> reverse_stops_pair{*iterator, *(iterator - 1)};
-                distance += get_distance_between_stops(reverse_stops_pair);
+                distance += GetDistanceBetweenStops(**iterator, **(iterator - 1));
             }
         }
 
         return distance;
     }
 
-    double Catalogue::get_bus_route_geo_distance(std::string_view bus_name) const {
+    double Catalogue::GetBusRouteGeoDistance(std::string_view bus_name) const {
         const Bus *bus = busnumber_to_buses_.at(bus_name);
-        return bus->get_route_geo_distance();
+        return bus->GetRouteGeoDistance();
     }
 
-    const Coordinates &Stop::get_coordinates() const {
+    const Coordinates &Stop::GetCoordinates() const {
         return coordinates_;
     }
 
-    std::string_view Stop::get_name() const {
+    std::string_view Stop::GetName() const {
         return name_;
     }
 
-    void Stop::add_bus(Bus *bus) {
+    void Stop::AddBus(Bus *bus) {
         buses_.insert(bus);
     }
 
-    const std::set<Bus *, details::BusComparator> &Stop::get_buses() const {
+    const std::set<Bus *, details::BusComparator> &Stop::GetBusses() const {
         return buses_;
     }
 
-    std::string_view Bus::get_number() const {
+    std::string_view Bus::GetNumber() const {
         return number_;
     }
 
-    size_t Bus::get_stops_count() const {
+    size_t Bus::GetStopsCount() const {
         return circle_route_ ? route_.size() : route_.size() * 2 - 1;
     }
 
-    size_t Bus::count_unique_stops() const {
+    size_t Bus::CountUniqueStops() const {
         std::set<std::string_view> unique_stops;
         for (const Stop *stop: route_) {
-            unique_stops.insert(stop->get_name());
+            unique_stops.insert(stop->GetName());
         }
         return unique_stops.size();
     }
 
-    double Bus::get_route_geo_distance() const {
+    double Bus::GetRouteGeoDistance() const {
         return route_distance_;
     }
 
@@ -103,26 +109,26 @@ namespace transport {
                                                                                           route_(std::move(stops)),
                                                                                           circle_route_(
                                                                                                   is_circle_route) {
-        calculate_distance();
+        CalculateDistance();
     }
 
-    void Bus::calculate_distance() {
+    void Bus::CalculateDistance() {
         route_distance_ = 0;
         for (auto iterator = std::next(route_.begin()); iterator != route_.end(); iterator = std::next(iterator)) {
             auto &stop1 = **iterator;
             auto &stop2 = **std::prev(iterator);
-            route_distance_ += ComputeDistance(stop1.get_coordinates(), stop2.get_coordinates());
+            route_distance_ += ComputeDistance(stop1.GetCoordinates(), stop2.GetCoordinates());
         }
         if (!circle_route_) {
             route_distance_ *= 2;
         }
     }
 
-    std::deque<Stop *> &Bus::get_stops() {
+    std::deque<Stop *> &Bus::GetStops() {
         return route_;
     }
 
-    const std::deque<Stop *> &Bus::get_stops() const {
+    const std::deque<Stop *> &Bus::GetStops() const {
         return route_;
     }
 

@@ -1,9 +1,13 @@
 #include "input_reader.h"
+#include "stat_reader.h"
 #include "transport_catalogue.h"
 
 int main() {
     transport::Catalogue catalogue;
-    input_reader::InputHandler update_handler(catalogue);
-    update_handler.read_input_commands();
-    update_handler.read_output_commands();
+
+    readers::InputReader input_reader(catalogue);
+    readers::StatReader stat_reader(catalogue);
+
+    input_reader.ReadInput();
+    stat_reader.ReadInput();
 }

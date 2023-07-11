@@ -10,33 +10,39 @@
 
 #include "transport_catalogue.h"
 
-namespace input_reader {
-    class InputHandler {
+namespace readers {
+
+    class Reader {
     public:
-        InputHandler() = delete;
+        Reader() = delete;
 
-        explicit InputHandler(transport::Catalogue &catalogue) : catalogue_(catalogue) {}
+        explicit Reader(transport::Catalogue &catalogue) : catalogue_(catalogue) {}
 
-        void read_input_commands();
-
-        void read_output_commands();
-
-    private:
-        using CommandContainer = std::unordered_map<std::string, std::deque<std::string>>;
-
+    protected:
         transport::Catalogue &catalogue_;
         std::istream &input_ = std::cin;
         std::ostream &output_ = std::cout;
+
+        int GetInt();
+    };
+
+    class InputReader : Reader {
+        using Reader::Reader;
+
+    public:
+        void ReadInput();
+
+    private:
+        using CommandContainer = std::unordered_map<std::string, std::deque<std::string>>;
         CommandContainer inputs_;
-        CommandContainer outputs_;
 
-        int get_int();
+        void ProcessInputs();
 
-        void read_input(CommandContainer &container);
+        void ProcessStops();
 
-        void process_inputs();
+        void ProcessBuses();
 
-        void read_output_input();
+        void ProcessDistances();
     };
 
     static inline void ltrim(std::string &s) {

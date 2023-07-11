@@ -1,23 +1,14 @@
 #include "input_reader.h"
 
-namespace input_reader {
-    int InputHandler::get_int() {
+namespace readers {
+    int Reader::GetInt() {
         std::string line;
         std::getline(input_, line);
         return std::stoi(line);
     }
 
-    void InputHandler::read_input_commands() {
-        read_input(inputs_);
-        process_inputs();
-    }
-
-    void InputHandler::read_output_commands() {
-        read_output_input();
-    }
-
-    void InputHandler::read_input(CommandContainer &container) {
-        const int lines_to_read = get_int();
+    void InputReader::ReadInput() {
+        const int lines_to_read = GetInt();
         for (int line_number = 0; line_number < lines_to_read; ++line_number) {
             std::string line;
             std::getline(input_, line);
@@ -32,74 +23,35 @@ namespace input_reader {
                     }
                 }
                 if (distances_start != std::string::npos) {
-                    std::string distances = update.substr(0, update.find_first_of(':')) + ", " + update.substr(distances_start + 2);
-                    container["Distances"].push_back(distances);
+                    std::string distances =
+                            update.substr(0, update.find_first_of(':')) + ", " + update.substr(distances_start + 2);
+                    inputs_["Distances"].push_back(distances);
                 }
             }
-            container[command].push_back(std::move(update));
+            inputs_[command].push_back(std::move(update));
         }
+
+        ProcessInputs();
     }
 
-    void InputHandler::read_output_input() {
-        const int lines_to_read = get_int();
-        for (int line_number = 0; line_number < lines_to_read; ++line_number) {
-            std::string line;
-            std::getline(input_, line);
-            std::string command = line.substr(0, line.find_first_of(' '));
-            std::string update = line.substr(command.size() + 1, line.size() - command.size());
-            using namespace std::string_literals;
-            if (command == "Bus") {
-                const transport::Bus *bus;
-                try {
-                    bus = &catalogue_.get_bus(update);
-                }
-                catch (std::out_of_range &) {
-                    output_ << "Bus "s << update << ": not found"s << std::endl;
-                    continue;
-                }
-
-                auto bus_route_distance = catalogue_.get_bus_route_distance(update);
-                output_ << "Bus "s << update << ": "s << bus->get_stops_count() << " stops on route, "s
-                        << bus->count_unique_stops() << " unique stops, "s
-                        << bus_route_distance
-                        << " route length, "s
-                        << bus_route_distance / catalogue_.get_bus_route_geo_distance(update)
-                        << " curvature"s
-                        << std::endl;
-
-            } else if (command == "Stop") {
-                const transport::Stop *stop;
-                try {
-                    stop = &catalogue_.get_stop(update);
-                }
-                catch (std::out_of_range &) {
-                    output_ << "Stop "s << update << ": not found"s << std::endl;
-                    continue;
-                }
-                if (stop->get_buses().empty()) {
-                    output_ << "Stop "s << update << ": no buses"s << std::endl;
-                    continue;
-                }
-                output_ << "Stop "s << update << ": buses"s;
-                for (const transport::Bus *bus: stop->get_buses()) {
-                    output_ << " "s << bus->get_number();
-                }
-                output_ << std::endl;
-            }
-        }
+    void InputReader::ProcessInputs() {
+        ProcessStops();
+        ProcessBuses();
+        ProcessDistances();
     }
 
-    void InputHandler::process_inputs() {
+    void InputReader::ProcessStops() {
         for (const std::string &line: inputs_["Stop"]) {
             std::string stop_name = line.substr(0, line.find_first_of(':'));
             const size_t latitude_end = line.find_first_of(',', stop_name.size() + 1);
             const size_t longitude_end = line.find_first_of(',', latitude_end + 1);
             const double latitude = stod(line.substr(stop_name.size() + 2, latitude_end - stop_name.size() - 2));
             const double longitude = stod(line.substr(latitude_end + 2, longitude_end - latitude_end + 2));
-            catalogue_.add_stop(std::move(stop_name), latitude, longitude);
-
+            catalogue_.AddStop(std::move(stop_name), {latitude, longitude});
         }
+    }
 
+    void InputReader::ProcessBuses() {
         for (const std::string &line: inputs_["Bus"]) {
             std::string bus_name = line.substr(0, line.find_first_of(':'));
 
@@ -116,24 +68,23 @@ namespace input_reader {
                 stop_name_start = stop_name_end == std::string::npos ? std::string::npos : stop_name_end + 1;
             }
 
-            catalogue_.add_bus(bus_name, stops, is_circle_route);
+            catalogue_.AddBus(bus_name, stops, is_circle_route);
         }
+    }
 
+    void InputReader::ProcessDistances() {
         for (const std::string &line: inputs_["Distances"]) {
             const size_t from_stop_name_length = line.find_first_of(',');
-            transport::Stop &from_stop = catalogue_.get_stop(line.substr(0, from_stop_name_length));
+            transport::Stop &from_stop = catalogue_.GetStop(line.substr(0, from_stop_name_length));
             for (size_t distance_start = from_stop_name_length + 1; distance_start != std::string::npos;) {
                 size_t distance_end = line.find_first_of('m', distance_start);
                 int distance = std::stoi(line.substr(distance_start, distance_end - distance_start));
 
                 size_t to_stop_start = distance_end + 5;
                 size_t to_stop_end = line.find_first_of(',', to_stop_start);
-                transport::Stop &to_stop = catalogue_.get_stop(line.substr(to_stop_start, to_stop_end - to_stop_start));
+                transport::Stop &to_stop = catalogue_.GetStop(line.substr(to_stop_start, to_stop_end - to_stop_start));
 
-                std::pair<transport::Stop *, transport::Stop *> stop_pair;
-                stop_pair.first = &from_stop;
-                stop_pair.second = &to_stop;
-                catalogue_.add_distance(stop_pair, distance);
+                catalogue_.AddDistance(from_stop, to_stop, distance);
 
                 distance_start = to_stop_end != std::string::npos ? to_stop_end + 1 : std::string::npos;
             }
