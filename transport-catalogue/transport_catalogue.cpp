@@ -80,14 +80,15 @@ namespace transport {
         std::pair<const transport::Stop *, const transport::Stop *> stops_pair;
         stops_pair.first = &from_stop;
         stops_pair.second = &to_stop;
-        try {
-            return distances_.at(stops_pair);
-        }
-        catch (std::out_of_range &) {
+
+        auto distance_it = distances_.find(stops_pair);
+        if (distance_it == distances_.end()) {
             std::pair<const Stop *, const Stop *> reverse_stops_pair;
             reverse_stops_pair.first = stops_pair.second;
             reverse_stops_pair.second = stops_pair.first;
             return distances_.at(reverse_stops_pair);
+        } else {
+            return distance_it->second;
         }
     }
 
