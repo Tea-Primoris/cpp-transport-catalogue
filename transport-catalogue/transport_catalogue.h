@@ -76,7 +76,7 @@ namespace transport {
 
     namespace details {
         struct StopPtrHasher {
-            size_t operator()(const std::pair<Stop *, Stop *> pair) const;
+            size_t operator()(std::pair<const Stop *, const Stop *> pair) const;
         };
     }
 
@@ -90,7 +90,7 @@ namespace transport {
 
         void AddBus(std::string_view number, const std::vector<std::string> &stops, bool is_circle_route = false);
 
-        void AddDistance(Stop &from_stop, Stop &to_stop, int length);
+        void AddDistance(const Stop &from_stop, const Stop &to_stop, int length);
 
         const Stop &GetStop(std::string_view stop_name) const;
 
@@ -115,6 +115,6 @@ namespace transport {
         std::deque<Bus> buses_;
         std::unordered_map<std::string_view, Bus *> busnumber_to_buses_;
 
-        std::unordered_map<std::pair<Stop *, Stop *>, int, details::StopPtrHasher> distances_;
+        std::unordered_map<std::pair<const Stop *, const Stop *>, int, details::StopPtrHasher> distances_;
     };
 }

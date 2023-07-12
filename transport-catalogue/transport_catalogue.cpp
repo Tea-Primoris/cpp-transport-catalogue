@@ -69,8 +69,8 @@ namespace transport {
         return bus->GetRouteGeoDistance();
     }
 
-    void Catalogue::AddDistance(Stop &from_stop, Stop &to_stop, int length) {
-        std::pair<transport::Stop *, transport::Stop *> stop_pair;
+    void Catalogue::AddDistance(const Stop &from_stop, const Stop &to_stop, int length) {
+        std::pair<const transport::Stop *, const transport::Stop *> stop_pair;
         stop_pair.first = &from_stop;
         stop_pair.second = &to_stop;
         distances_[stop_pair] = length;
@@ -156,7 +156,7 @@ namespace transport {
 
     namespace details {
 
-        size_t StopPtrHasher::operator()(const std::pair<Stop *, Stop *> pair) const {
+        size_t StopPtrHasher::operator()(const std::pair<const Stop *, const Stop *> pair) const {
             const size_t first_stop_hash = std::hash<std::string_view>{}(pair.first->GetName());
             const size_t second_stop_hash = std::hash<std::string_view>{}(pair.second->GetName());
             return (first_stop_hash * 37) + (second_stop_hash * (37 ^ 2));
