@@ -91,6 +91,16 @@ namespace transport {
         }
     }
 
+    BusInfo Catalogue::GetBusInfo(std::string_view bus_name) const {
+        const Bus &bus = GetBus(bus_name);
+        BusInfo bus_info{};
+        bus_info.stops_on_route = bus.GetStopsCount();
+        bus_info.unique_stops = bus.CountUniqueStops();
+        bus_info.route_length = GetBusRouteDistance(bus_name);
+        bus_info.curvature = bus_info.route_length / GetBusRouteGeoDistance(bus_name);
+        return bus_info;
+    }
+
     const Coordinates &Stop::GetCoordinates() const {
         return coordinates_;
     }

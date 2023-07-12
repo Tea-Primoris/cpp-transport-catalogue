@@ -13,6 +13,13 @@
 
 namespace transport {
 
+    struct BusInfo {
+        size_t stops_on_route;
+        size_t unique_stops;
+        int route_length;
+        double curvature;
+    };
+
     class Stop;
 
     class Bus {
@@ -107,6 +114,8 @@ namespace transport {
         double GetBusRouteGeoDistance(std::string_view bus_name) const;
 
         int GetDistanceBetweenStops(const Stop &from_stop, const Stop &to_stop) const;
+
+        BusInfo GetBusInfo(std::string_view bus_name) const;
 
     private:
         std::deque<Stop> stops_;

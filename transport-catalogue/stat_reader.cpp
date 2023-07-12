@@ -25,14 +25,11 @@ namespace readers {
             return;
         }
 
-        const transport::Bus &bus = catalogue_.GetBus(args);
-        auto bus_route_distance = catalogue_.GetBusRouteDistance(args);
-        output_ << "Bus "s << args << ": "s << bus.GetStopsCount() << " stops on route, "s
-                << bus.CountUniqueStops() << " unique stops, "s
-                << bus_route_distance
-                << " route length, "s
-                << bus_route_distance / catalogue_.GetBusRouteGeoDistance(args)
-                << " curvature"s
+        auto bus_info = catalogue_.GetBusInfo(args);
+        output_ << "Bus "s << args << ": "s << bus_info.stops_on_route << " stops on route, "s
+                << bus_info.unique_stops << " unique stops, "s
+                << bus_info.route_length << " route length, "s
+                << bus_info.curvature << " curvature"s
                 << std::endl;
     }
 
