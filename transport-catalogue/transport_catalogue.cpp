@@ -69,6 +69,28 @@ namespace transport {
         return bus->GetRouteGeoDistance();
     }
 
+    void Catalogue::AddDistance(Stop &from_stop, Stop &to_stop, int length) {
+        std::pair<transport::Stop *, transport::Stop *> stop_pair;
+        stop_pair.first = &from_stop;
+        stop_pair.second = &to_stop;
+        distances_[stop_pair] = length;
+    }
+
+    int Catalogue::GetDistanceBetweenStops(Stop &from_stop, Stop &to_stop) const {
+        std::pair<transport::Stop *, transport::Stop *> stops_pair;
+        stops_pair.first = &from_stop;
+        stops_pair.second = &to_stop;
+        try {
+            return distances_.at(stops_pair);
+        }
+        catch (std::out_of_range&) {
+            std::pair<Stop *, Stop *> reverse_stops_pair;
+            reverse_stops_pair.first = stops_pair.second;
+            reverse_stops_pair.second = stops_pair.first;
+            return distances_.at(reverse_stops_pair);
+        }
+    }
+
     const Coordinates &Stop::GetCoordinates() const {
         return coordinates_;
     }
@@ -134,5 +156,14 @@ namespace transport {
 
     namespace details {
 
+        size_t StopPtrHasher::operator()(const std::pair<Stop *, Stop *> pair) const {
+            const size_t first_stop_hash = std::hash<std::string_view>{}(pair.first->GetName());
+            const size_t second_stop_hash = std::hash<std::string_view>{}(pair.second->GetName());
+            return (first_stop_hash * 37) + (second_stop_hash * (37 ^ 2));
+        }
+
+        bool BusComparator::operator()(const Bus *lhs, const Bus *rhs) const {
+            return lhs->GetNumber() < rhs->GetNumber();
+        }
     }
 }

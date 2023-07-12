@@ -48,9 +48,7 @@ namespace transport {
 
     namespace details {
         struct BusComparator {
-            bool operator()(const Bus *lhs, const Bus *rhs) const {
-                return lhs->GetNumber() < rhs->GetNumber();
-            }
+            bool operator()(const Bus *lhs, const Bus *rhs) const;
         };
     }
 
@@ -78,11 +76,7 @@ namespace transport {
 
     namespace details {
         struct StopPtrHasher {
-            size_t operator()(const std::pair<Stop *, Stop *> pair) const {
-                const size_t first_stop_hash = std::hash<std::string_view>{}(pair.first->GetName());
-                const size_t second_stop_hash = std::hash<std::string_view>{}(pair.second->GetName());
-                return (first_stop_hash * 37) + (second_stop_hash * (37 ^ 2));
-            }
+            size_t operator()(const std::pair<Stop *, Stop *> pair) const;
         };
     }
 
@@ -96,12 +90,7 @@ namespace transport {
 
         void AddBus(std::string_view number, const std::vector<std::string> &stops, bool is_circle_route = false);
 
-        void AddDistance(Stop &from_stop, Stop &to_stop, int length) {
-            std::pair<transport::Stop *, transport::Stop *> stop_pair;
-            stop_pair.first = &from_stop;
-            stop_pair.second = &to_stop;
-            distances_[stop_pair] = length;
-        }
+        void AddDistance(Stop &from_stop, Stop &to_stop, int length);
 
         const Stop &GetStop(std::string_view stop_name) const;
 
@@ -117,20 +106,7 @@ namespace transport {
 
         double GetBusRouteGeoDistance(std::string_view bus_name) const;
 
-        int GetDistanceBetweenStops(Stop &from_stop, Stop &to_stop) const {
-            std::pair<transport::Stop *, transport::Stop *> stops_pair;
-            stops_pair.first = &from_stop;
-            stops_pair.second = &to_stop;
-            try {
-                return distances_.at(stops_pair);
-            }
-            catch (std::out_of_range&) {
-                std::pair<Stop *, Stop *> reverse_stops_pair;
-                reverse_stops_pair.first = stops_pair.second;
-                reverse_stops_pair.second = stops_pair.first;
-                return distances_.at(reverse_stops_pair);
-            }
-        }
+        int GetDistanceBetweenStops(Stop &from_stop, Stop &to_stop) const;
 
     private:
         std::deque<Stop> stops_;
