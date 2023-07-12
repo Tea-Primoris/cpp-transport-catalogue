@@ -106,7 +106,7 @@ namespace transport {
 
         double GetBusRouteGeoDistance(std::string_view bus_name) const;
 
-        int GetDistanceBetweenStops(Stop &from_stop, Stop &to_stop) const;
+        int GetDistanceBetweenStops(const Stop &from_stop, const Stop &to_stop) const;
 
     private:
         std::deque<Stop> stops_;

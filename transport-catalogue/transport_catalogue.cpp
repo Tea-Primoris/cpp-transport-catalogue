@@ -76,15 +76,15 @@ namespace transport {
         distances_[stop_pair] = length;
     }
 
-    int Catalogue::GetDistanceBetweenStops(Stop &from_stop, Stop &to_stop) const {
-        std::pair<transport::Stop *, transport::Stop *> stops_pair;
+    int Catalogue::GetDistanceBetweenStops(const Stop &from_stop, const Stop &to_stop) const {
+        std::pair<const transport::Stop *, const transport::Stop *> stops_pair;
         stops_pair.first = &from_stop;
         stops_pair.second = &to_stop;
         try {
             return distances_.at(stops_pair);
         }
-        catch (std::out_of_range&) {
-            std::pair<Stop *, Stop *> reverse_stops_pair;
+        catch (std::out_of_range &) {
+            std::pair<const Stop *, const Stop *> reverse_stops_pair;
             reverse_stops_pair.first = stops_pair.second;
             reverse_stops_pair.second = stops_pair.first;
             return distances_.at(reverse_stops_pair);
