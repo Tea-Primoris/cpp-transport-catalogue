@@ -82,9 +82,9 @@ namespace transport {
 
     class Catalogue {
     public:
-        Stop &AddStop(transport::Stop &&stop);
+        void AddStop(transport::Stop &&stop);
 
-        Stop &AddStop(const std::string_view name, Coordinates coordinates);
+        void AddStop(std::string_view name, Coordinates coordinates);
 
         void AddBus(Bus &&bus);
 
