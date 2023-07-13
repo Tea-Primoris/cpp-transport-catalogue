@@ -89,7 +89,7 @@ namespace transport {
 
     class Catalogue {
     public:
-        void AddStop(transport::Stop &&stop);
+        void AddStop(const transport::Stop &stop);
 
         void AddStop(std::string_view name, Coordinates coordinates);
 
@@ -109,12 +109,6 @@ namespace transport {
 
         bool HasBus(std::string_view bus_name) const;
 
-        int GetBusRouteDistance(std::string_view bus_name) const;
-
-        double GetBusRouteGeoDistance(std::string_view bus_name) const;
-
-        int GetDistanceBetweenStops(const Stop &from_stop, const Stop &to_stop) const;
-
         BusInfo GetBusInfo(std::string_view bus_name) const;
 
     private:
@@ -125,5 +119,11 @@ namespace transport {
         std::unordered_map<std::string_view, Bus *> busnumber_to_buses_;
 
         std::unordered_map<std::pair<const Stop *, const Stop *>, int, details::StopPtrHasher> distances_;
+
+        int GetBusRouteDistance(std::string_view bus_name) const;
+
+        double GetBusRouteGeoDistance(std::string_view bus_name) const;
+
+        int GetDistanceBetweenStops(const Stop &from_stop, const Stop &to_stop) const;
     };
 }

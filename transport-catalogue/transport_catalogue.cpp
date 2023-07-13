@@ -1,14 +1,14 @@
 #include "transport_catalogue.h"
 
 namespace transport {
-    void Catalogue::AddStop(transport::Stop &&stop) {
-        stops_.push_back(std::move(stop));
+    void Catalogue::AddStop(const transport::Stop &stop) {
+        stops_.push_back(stop);
         Stop &added_stop = stops_.back();
         stopnames_to_stops_[added_stop.GetName()] = &added_stop;
     }
 
     void Catalogue::AddStop(std::string_view name, const Coordinates coordinates) {
-        AddStop(std::move(Stop{name, coordinates.lat, coordinates.lng}));
+        AddStop(Stop{name, coordinates.lat, coordinates.lng});
     }
 
     void Catalogue::AddBus(std::string_view number, const std::vector<std::string> &stops, bool is_circle_route) {
