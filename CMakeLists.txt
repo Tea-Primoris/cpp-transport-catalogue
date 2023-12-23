@@ -8,3 +8,5 @@ add_executable(cpp_transport_catalogue
         transport-catalogue/input_reader.cpp
         transport-catalogue/stat_reader.cpp
         transport-catalogue/transport_catalogue.cpp)
+
+add_subdirectory(tests)
