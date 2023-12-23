@@ -4,9 +4,16 @@ project(cpp_transport_catalogue)
 set(CMAKE_CXX_STANDARD 23)
 
 add_executable(cpp_transport_catalogue
-        transport-catalogue/main.cpp
-        transport-catalogue/input_reader.cpp
-        transport-catalogue/stat_reader.cpp
-        transport-catalogue/transport_catalogue.cpp)
+        main.cpp
+        domain.cpp
+        geo.cpp
+        json.cpp
+        json_reader.cpp
+        map_renderer.cpp
+        request_handler.cpp
+        svg.cpp
+        transport_catalogue.cpp
+        input_reader.cpp
+        stat_reader.cpp)
 
 add_subdirectory(tests)

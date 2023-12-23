@@ -54,4 +54,3 @@ namespace readers {
         output_ << std::endl;
     }
 }
-
