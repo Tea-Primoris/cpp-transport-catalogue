@@ -13,7 +13,6 @@ add_executable(cpp_transport_catalogue
         request_handler.cpp
         svg.cpp
         transport_catalogue.cpp
-        input_reader.cpp
-        stat_reader.cpp)
+)
 
 add_subdirectory(tests)

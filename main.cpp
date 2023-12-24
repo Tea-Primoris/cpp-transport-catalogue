@@ -1,13 +1,9 @@
-#include "input_reader.h"
-#include "stat_reader.h"
 #include "transport_catalogue.h"
+#include "json_reader.h"
 
 int main() {
     transport::Catalogue catalogue;
+    json::Reader reader(catalogue);
 
-    readers::InputReader input_reader(catalogue);
-    readers::StatReader stat_reader(catalogue);
-
-    input_reader.ReadInput();
-    stat_reader.ReadInput();
+    reader.Read(std::cin);
 }
