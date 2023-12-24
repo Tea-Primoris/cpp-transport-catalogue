@@ -184,8 +184,12 @@ namespace json {
             std::map<std::string, Node> requests = json::Load(input_stream).GetRoot().AsDict();
             ProcessBaseRequests(requests.at("base_requests"s));
             ProcessStatRequests(requests.at("stat_requests"s));
-            Document output{builder_.EndArray().Build()};
-            Print(output, std::cout);
+            builder_.EndArray();
+        }
+
+        void BuildJSON(std::ostream& output_stream) {
+            Document output{builder_.Build()};
+            Print(output, output_stream);
         }
 
     private:

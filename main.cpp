@@ -6,4 +6,5 @@ int main() {
     json::Reader reader(catalogue);
 
     reader.Read(std::cin);
+    reader.BuildJSON(std::cout);
 }
