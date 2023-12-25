@@ -97,6 +97,10 @@ namespace transport {
         return bus_info;
     }
 
+    const std::deque<Bus>& Catalogue::GetAllRoutes() const {
+        return buses_;
+    }
+
     namespace details {
 
         size_t StopPtrHasher::operator()(const std::pair<const Stop *, const Stop *> pair) const {

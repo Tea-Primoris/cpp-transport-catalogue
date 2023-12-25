@@ -38,6 +38,8 @@ namespace transport {
 
         BusInfo GetBusInfo(std::string_view bus_name) const;
 
+        const std::deque<Bus>& GetAllRoutes() const;
+
     private:
         std::deque<Stop> stops_;
         std::unordered_map<std::string_view, Stop *> stopnames_to_stops_;

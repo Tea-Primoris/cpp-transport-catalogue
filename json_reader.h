@@ -5,7 +5,9 @@
 #include <queue>
 
 #include "json.h"
+#include "map_renderer.h"
 #include "transport_catalogue.h"
+#include "svg.h"
 
 using namespace std::literals;
 
@@ -184,6 +186,7 @@ namespace json {
             std::map<std::string, Node> requests = json::Load(input_stream).GetRoot().AsDict();
             ProcessBaseRequests(requests.at("base_requests"s));
             ProcessStatRequests(requests.at("stat_requests"s));
+            ProcessRenderRequests(requests.at("render_settings"s));
             builder_.EndArray();
         }
 
@@ -195,6 +198,43 @@ namespace json {
     private:
         transport::Catalogue& catalogue_;
         mutable Builder builder_;
+
+        void ProcessRenderRequests(const Node& render_settings) {
+            std::vector<std::string> color_palette(
+                ConstructColorPalette(render_settings.AsDict().at("color_palette").AsArray()));
+            const double width = render_settings.AsDict().at("width"s).AsDouble();
+            const double height = render_settings.AsDict().at("height"s).AsDouble();
+            const double padding = render_settings.AsDict().at("padding"s).AsDouble();
+            const double line_width = render_settings.AsDict().at("line_width"s).AsDouble();
+            maprender::MapRenderer renderer(catalogue_, std::move(color_palette), width, height, padding, line_width);
+            renderer.Render(std::cout); //TODO Сделать вывод отдельным.
+        }
+
+        static std::vector<std::string> ConstructColorPalette(const Array& nodes_array) {
+            std::vector<std::string> color_palette;
+            for (const auto& color: nodes_array) {
+                if (color.IsArray()) {
+                    std::string color_string;
+                    if (color.AsArray().size() == 4) {
+                        color_string = "rgba(";
+                    } else {
+                        color_string = "rgb(";
+                    }
+                    color_string += std::to_string(color.AsArray().at(0).AsInt()) + ",";
+                    color_string += std::to_string(color.AsArray().at(1).AsInt()) + ",";
+                    color_string += std::to_string(color.AsArray().at(2).AsInt());
+                    if (color.AsArray().size() == 4) {
+                        color_string += "," + std::to_string(color.AsArray().at(3).AsDouble());
+                    }
+                    color_string += ")";
+                    color_palette.push_back(std::move(color_string));
+                } else {
+                    color_palette.push_back(color.AsString());
+                }
+            }
+            return color_palette;
+        }
+
 
         void ProcessBaseRequests(const Node& base_requests) const {
             std::queue<const Node *> buses_to_process;
