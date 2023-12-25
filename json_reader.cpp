@@ -1,5 +1,8 @@
 #include "json_reader.h"
 
+#include <iomanip>
+#include <sstream>
+
 namespace json {
     Builder::Builder() {
         nodes_stack_.push_back(&root_);
@@ -113,20 +116,21 @@ namespace json {
         std::vector<std::string> color_palette;
         for (const auto& color: nodes_array) {
             if (color.IsArray()) {
-                std::string color_string;
+                std::ostringstream color_stream;
                 if (color.AsArray().size() == 4) {
-                    color_string = "rgba(";
+                    color_stream << "rgba("s;
                 } else {
-                    color_string = "rgb(";
+                    color_stream << "rgb("s;
                 }
-                color_string += std::to_string(color.AsArray().at(0).AsInt()) + ",";
-                color_string += std::to_string(color.AsArray().at(1).AsInt()) + ",";
-                color_string += std::to_string(color.AsArray().at(2).AsInt());
+                color_stream << std::to_string(color.AsArray().at(0).AsInt()) + ",";
+                color_stream << std::to_string(color.AsArray().at(1).AsInt()) + ",";
+                color_stream << std::to_string(color.AsArray().at(2).AsInt());
                 if (color.AsArray().size() == 4) {
-                    color_string += "," + std::to_string(color.AsArray().at(3).AsDouble());
+                    color_stream << std::setprecision(8) << std::noshowpoint << ","
+                            << color.AsArray().at(3).AsDouble();
                 }
-                color_string += ")";
-                color_palette.push_back(std::move(color_string));
+                color_stream << ")";
+                color_palette.push_back(std::move(color_stream.str()));
             } else {
                 color_palette.push_back(color.AsString());
             }
@@ -155,7 +159,7 @@ namespace json {
         }
     }
 
-    void Reader::AddDistance(const std::pair<const std::string*, const Node*>& pair) const {
+    void Reader::AddDistance(const std::pair<const std::string *, const Node *>& pair) const {
         const auto& road_distances = pair.second->AsDict();
         const transport::Stop& from_stop = catalogue_.GetStop(*pair.first);
         for (const auto& stop_to_distance: road_distances) {
@@ -166,7 +170,7 @@ namespace json {
     }
 
     void Reader::AddStop(const Node& node,
-        std::queue<std::pair<const std::string*, const Node*>>& distances_to_process) const {
+                         std::queue<std::pair<const std::string *, const Node *>>& distances_to_process) const {
         const auto& stop = node.AsDict();
         const std::string& name = stop.at("name"s).AsString();
         const double latitude = stop.at("latitude"s).AsDouble();
