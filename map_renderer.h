@@ -10,11 +10,9 @@ using namespace std::literals;
 
 namespace maprender {
     namespace details {
-        inline const double EPSILON = 1e-6;
+        inline constexpr double EPSILON = 1e-6;
 
-        inline bool IsZero(double value) {
-            return std::abs(value) < EPSILON;
-        }
+        inline bool IsZero(double value);
 
         class SphereProjector {
         public:
@@ -69,12 +67,7 @@ namespace maprender {
             }
 
             // Проецирует широту и долготу в координаты внутри SVG-изображения
-            svg::Point operator()(geo::Coordinates coords) const {
-                return {
-                    (coords.lng - min_lon_) * zoom_coeff_ + padding_,
-                    (max_lat_ - coords.lat) * zoom_coeff_ + padding_
-                };
-            }
+            svg::Point operator()(geo::Coordinates coords) const;
 
         private:
             double padding_;
@@ -87,32 +80,9 @@ namespace maprender {
     class MapRenderer {
     public:
         explicit MapRenderer(transport::Catalogue& catalogue, std::vector<std::string> color_palette, double width,
-                             double height, double padding, double line_width)
-            : catalogue_(catalogue), color_palette_(std::move(color_palette)), line_width_(line_width) {
-            const auto& all_routes = catalogue_.GetAllRoutes();
+                             double height, double padding, double line_width);
 
-            std::deque<geo::Coordinates> all_stop_coords;
-            for (const auto& route: all_routes) {
-                for (const auto& stop: route.GetStops()) {
-                    all_stop_coords.push_back(stop->GetCoordinates());
-                }
-            }
-
-            projector_ = std::make_unique<details::SphereProjector>(all_stop_coords.begin(), all_stop_coords.end(),
-                                                                    width, height, padding);
-        }
-
-        void Render(std::ostream& output_stream) {
-            const auto& all_routes = catalogue_.GetAllRoutes();
-            std::set<std::string> sorted_routes;
-            for (const auto& route: all_routes) {
-                sorted_routes.emplace(route.GetNumber());
-            }
-            for (const auto& route_number: sorted_routes) {
-                RenderRoute(catalogue_.GetBus(route_number));
-            }
-            map_.Render(output_stream);
-        }
+        void Render(std::ostream& output_stream);
 
     private:
         svg::Document map_;
@@ -123,30 +93,8 @@ namespace maprender {
         size_t current_color_ = 0;
         std::unique_ptr<details::SphereProjector> projector_;
 
-        void RenderRoute(const transport::Bus& route) {
-            const auto& stops = route.GetStops();
-            if (stops.empty()) {
-                return;
-            }
+        void RenderRoute(const transport::Bus& route);
 
-            svg::Polyline route_line;
-            route_line.SetFillColor("none"s).SetStrokeColor(PickStrokeColor()).SetStrokeWidth(line_width_)
-                    .SetStrokeLineCap(svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-            for (const auto& stop: stops) {
-                route_line.AddPoint(projector_->operator()(stop->GetCoordinates()));
-            }
-            if (!route.IsCircle()) {
-                std::for_each(stops.rbegin() + 1, stops.rend(), [&](const auto& stop) {
-                    route_line.AddPoint(projector_->operator()(stop->GetCoordinates()));
-                });
-            }
-            map_.Add(std::move(route_line));
-        }
-
-        std::string PickStrokeColor() {
-            std::string color = color_palette_.at(current_color_);
-            current_color_ = (current_color_ + 1) < color_palette_.size() ? current_color_ + 1 : 0;
-            return color;
-        }
+        std::string PickStrokeColor();
     };
 }
