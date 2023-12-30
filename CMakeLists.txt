@@ -11,5 +11,6 @@ add_executable(transport_catalogue transport-catalogue/main.cpp
         transport-catalogue/json_reader.cpp
         transport-catalogue/json.cpp
         transport-catalogue/map_renderer.cpp
-        transport-catalogue/request_handler.cpp)
+        transport-catalogue/request_handler.cpp
+        transport-catalogue/json_builder.cpp)
 add_subdirectory(tests)
