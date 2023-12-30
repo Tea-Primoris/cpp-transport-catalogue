@@ -9,9 +9,7 @@
 #include <vector>
 
 namespace svg {
-
     namespace detail {
-
         template <typename T>
         inline void RenderValue(std::ostream& out, const T& value) {
             out << value;
@@ -39,15 +37,15 @@ namespace svg {
                 RenderAttr(out, name, *value);
             }
         }
-
-    }  // namespace detail
+    } // namespace detail
 
     struct Point {
         Point() = default;
+
         Point(double x, double y)
-                : x(x)
-                , y(y) {
-        }
+            : x(x)
+              , y(y) {}
+
         double x = 0;
         double y = 0;
     };
@@ -55,20 +53,18 @@ namespace svg {
     using Color = std::string;
     inline const Color NoneColor{"none"};
 
-/*
- * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
- * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
- */
+    /*
+     * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
+     * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
+     */
     struct RenderContext {
         RenderContext(std::ostream& out)
-                : out(out) {
-        }
+            : out(out) {}
 
         RenderContext(std::ostream& out, int indent_step, int indent = 0)
-                : out(out)
-                , indent_step(indent_step)
-                , indent(indent) {
-        }
+            : out(out)
+              , indent_step(indent_step)
+              , indent(indent) {}
 
         RenderContext Indented() const {
             return {out, indent_step, indent + indent_step};
@@ -85,11 +81,11 @@ namespace svg {
         int indent = 0;
     };
 
-/*
- * Абстрактный базовый класс Object служит для унифицированного хранения
- * конкретных тэгов SVG-документа
- * Реализует паттерн "Шаблонный метод" для вывода содержимого тэга
- */
+    /*
+     * Абстрактный базовый класс Object служит для унифицированного хранения
+     * конкретных тэгов SVG-документа
+     * Реализует паттерн "Шаблонный метод" для вывода содержимого тэга
+     */
     class Object {
     public:
         void Render(const RenderContext& context) const;
@@ -125,18 +121,22 @@ namespace svg {
             fill_color_ = std::move(color);
             return AsOwner();
         }
+
         Owner& SetStrokeColor(Color color) {
             stroke_color_ = std::move(color);
             return AsOwner();
         }
+
         Owner& SetStrokeWidth(double width) {
             stroke_width_ = width;
             return AsOwner();
         }
+
         Owner& SetStrokeLineCap(StrokeLineCap line_cap) {
             stroke_line_cap_ = line_cap;
             return AsOwner();
         }
+
         Owner& SetStrokeLineJoin(StrokeLineJoin line_join) {
             stroke_line_join_ = line_join;
             return AsOwner();
@@ -169,12 +169,12 @@ namespace svg {
         std::optional<StrokeLineJoin> stroke_line_join_;
     };
 
-/*
- * Класс Circle моделирует элемент <circle> для отображения круга
- * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
- * Унаследовавшись от PathProps<Circle>, мы "сообщаем" родителю,
- * что владельцем свойств является класс Circle
- */
+    /*
+     * Класс Circle моделирует элемент <circle> для отображения круга
+     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
+     * Унаследовавшись от PathProps<Circle>, мы "сообщаем" родителю,
+     * что владельцем свойств является класс Circle
+     */
     class Circle : public Object, public PathProps<Circle> {
     public:
         Circle& SetCenter(Point center);
@@ -187,10 +187,10 @@ namespace svg {
         double radius_ = 1.0;
     };
 
-/*
- * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
- * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
- */
+    /*
+     * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
+     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
+     */
     class Polyline : public Object, public PathProps<Polyline> {
     public:
         // Добавляет очередную вершину к ломаной линии
@@ -201,10 +201,10 @@ namespace svg {
         std::vector<Point> points_;
     };
 
-/*
- * Класс Text моделирует элемент <text> для отображения текста
- * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
- */
+    /*
+     * Класс Text моделирует элемент <text> для отображения текста
+     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+     */
     class Text : public Object, public PathProps<Text> {
     public:
         // Задаёт координаты опорной точки (атрибуты x и y)
@@ -235,9 +235,9 @@ namespace svg {
         std::string data_;
     };
 
-/*
- * Интерфейс, представляющий контейнер SVG объектов.
- */
+    /*
+     * Интерфейс, представляющий контейнер SVG объектов.
+     */
     class ObjectContainer {
     public:
         template <typename ObjectType>
@@ -254,10 +254,10 @@ namespace svg {
         ~ObjectContainer() = default;
     };
 
-/*
- * Интерфейс объектов, которые могут быть нарисованы на любом объекте,
- * реализующем интерфейс ObjectContainer
- */
+    /*
+     * Интерфейс объектов, которые могут быть нарисованы на любом объекте,
+     * реализующем интерфейс ObjectContainer
+     */
     class Drawable {
     public:
         virtual void Draw(ObjectContainer& container) const = 0;
@@ -278,5 +278,4 @@ namespace svg {
     private:
         std::vector<std::unique_ptr<Object>> objects_;
     };
-
-}  // namespace svg
+}

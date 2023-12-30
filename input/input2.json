@@ -1,0 +1,231 @@
+{
+    "base_requests": [
+        {
+            "is_roundtrip": false,
+            "name": "riQrF5PLFjEHxW0TBHsV5S",
+            "stops": [
+                "fPKiyDRT2RQYoTGO5Uxm",
+                "KqmPOGgk"
+            ],
+            "type": "Bus"
+        },
+        {
+            "is_roundtrip": false,
+            "name": "p",
+            "stops": [
+                "fPKiyDRT2RQYoTGO5Uxm",
+                "KqmPOGgk"
+            ],
+            "type": "Bus"
+        },
+        {
+            "latitude": 43.3506,
+            "longitude": 39.8328,
+            "name": "KqmPOGgk",
+            "road_distances": {
+                "fPKiyDRT2RQYoTGO5Uxm": 696181
+            },
+            "type": "Stop"
+        },
+        {
+            "latitude": 40.0966,
+            "longitude": 38.857,
+            "name": "fPKiyDRT2RQYoTGO5Uxm",
+            "road_distances": {
+                "KqmPOGgk": 935431
+            },
+            "type": "Stop"
+        },
+        {
+            "is_roundtrip": false,
+            "name": "YZBP",
+            "stops": [
+                "KqmPOGgk",
+                "fPKiyDRT2RQYoTGO5Uxm"
+            ],
+            "type": "Bus"
+        }
+    ],
+    "render_settings": {
+        "bus_label_font_size": 76744,
+        "bus_label_offset": [
+            -41283.3,
+            -80957.1
+        ],
+        "color_palette": [
+            [
+                70,
+                204,
+                107,
+                0.4888
+            ],
+            [
+                92,
+                16,
+                14,
+                0.584136
+            ],
+            [
+                105,
+                16,
+                91
+            ],
+            "tan",
+            "orange",
+            [
+                200,
+                91,
+                217,
+                0.901373
+            ],
+            [
+                251,
+                199,
+                8
+            ],
+            [
+                26,
+                211,
+                211
+            ],
+            [
+                133,
+                152,
+                106
+            ],
+            [
+                75,
+                110,
+                61,
+                0.741779
+            ],
+            [
+                215,
+                212,
+                148,
+                0.200011
+            ],
+            [
+                157,
+                127,
+                98
+            ],
+            "brown",
+            [
+                171,
+                122,
+                20
+            ],
+            [
+                138,
+                101,
+                133,
+                0.609656
+            ],
+            [
+                182,
+                125,
+                160
+            ],
+            [
+                68,
+                8,
+                55
+            ],
+            [
+                116,
+                119,
+                28
+            ],
+            [
+                187,
+                54,
+                222
+            ],
+            [
+                136,
+                5,
+                34,
+                0.708244
+            ],
+            [
+                170,
+                55,
+                39
+            ],
+            [
+                180,
+                164,
+                44
+            ]
+        ],
+        "height": 43291.4,
+        "line_width": 11204.4,
+        "padding": 3429.62,
+        "stop_label_font_size": 18656,
+        "stop_label_offset": [
+            76957.8,
+            -76174.5
+        ],
+        "stop_radius": 86273.8,
+        "underlayer_color": [
+            52,
+            106,
+            7,
+            0.998623
+        ],
+        "underlayer_width": 54298.8,
+        "width": 80451.2
+    },
+    "stat_requests": [
+        {
+            "id": 1824005929,
+            "name": "YZBP",
+            "type": "Bus"
+        },
+        {
+            "id": 1824005929,
+            "name": "YZBP",
+            "type": "Bus"
+        },
+        {
+            "id": 1394484266,
+            "name": "fPKiyDRT2RQYoTGO5Uxm",
+            "type": "Stop"
+        },
+        {
+            "id": 1394484266,
+            "name": "fPKiyDRT2RQYoTGO5Uxm",
+            "type": "Stop"
+        },
+        {
+            "id": 1394484266,
+            "name": "fPKiyDRT2RQYoTGO5Uxm",
+            "type": "Stop"
+        },
+        {
+            "id": 2112679654,
+            "name": "KqmPOGgk",
+            "type": "Stop"
+        },
+        {
+            "id": 2022322240,
+            "name": "BaO",
+            "type": "Stop"
+        },
+        {
+            "id": 1394484266,
+            "name": "fPKiyDRT2RQYoTGO5Uxm",
+            "type": "Stop"
+        },
+        {
+            "id": 1327103261,
+            "name": "Yw7PFPyvP SPC CN",
+            "type": "Bus"
+        },
+        {
+            "id": 1130477970,
+            "type": "Map"
+        }
+    ]
+}

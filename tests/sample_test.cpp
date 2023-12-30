@@ -1,16 +1,18 @@
-// provides main(); this line is required in only one .cpp file
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <gtest/gtest.h>
 
-#include <doctest/doctest.h>
-
-//function to be tested
-int fact(int n) {
-    return n <= 1 ? n : fact(n - 1) * n;
+int Factorial(int number) {
+    return number <= 1 ? number : Factorial(number - 1) * number;
 }
 
-TEST_CASE("testing the factorial function") {
-    CHECK(fact(1) == 1);
-    CHECK(fact(2) == 2);
-    CHECK(fact(3) == 6);
-    CHECK(fact(10) == 3628800);
+// Tests factorial of 0.
+TEST(FactorialTest, HandlesZeroInput) {
+    EXPECT_EQ(Factorial(0), 1);
+}
+
+// Tests factorial of positive numbers.
+TEST(FactorialTest, HandlesPositiveInput) {
+    EXPECT_EQ(Factorial(1), 1);
+    EXPECT_EQ(Factorial(2), 2);
+    EXPECT_EQ(Factorial(3), 6);
+    EXPECT_EQ(Factorial(8), 40320);
 }

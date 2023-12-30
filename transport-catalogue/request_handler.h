@@ -1,15 +1,10 @@
 #pragma once
-#include <functional>
-#include <istream>
-#include <memory>
-#include <queue>
 
-#include "json.h"
-#include "map_renderer.h"
+#include <sstream>
+
 #include "transport_catalogue.h"
-#include "svg.h"
-
-using namespace std::literals;
+#include "geo.h"
+#include "json.h" //for JSON buider class
 
 //JSON Builder start
 namespace json {
@@ -53,9 +48,9 @@ namespace json {
         std::string key_;
         bool key_specified_ = false;
         Node root_;
-        std::vector<Node *> nodes_stack_;
+        std::vector<Node*> nodes_stack_;
 
-        template<typename T>
+        template <typename T>
         void CreateNode(T value) {
             if (nodes_stack_.empty()) {
                 throw std::logic_error("Node is already built."s);
@@ -63,10 +58,12 @@ namespace json {
 
             if (const auto& back_node = nodes_stack_.back(); back_node->IsNull()) {
                 back_node->GetValue() = value;
-            } else if (back_node->IsArray()) {
+            }
+            else if (back_node->IsArray()) {
                 auto& new_array = std::get<Array>(back_node->GetValue()).emplace_back(value);
                 nodes_stack_.push_back(&new_array);
-            } else if (back_node->IsDict()) {
+            }
+            else if (back_node->IsDict()) {
                 if (!key_specified_) {
                     throw std::logic_error("Key not specified."s);
                 }
@@ -81,8 +78,7 @@ namespace json {
         class BaseContext {
         public:
             explicit BaseContext(Builder& builder)
-                : builder_(builder) {
-            }
+                : builder_(builder) {}
 
             ~BaseContext() = default;
 
@@ -121,8 +117,7 @@ namespace json {
         class DictContext : public BaseContext {
         public:
             explicit DictContext(Builder& builder)
-                : BaseContext(builder) {
-            }
+                : BaseContext(builder) {}
 
             auto Build() = delete;
 
@@ -138,8 +133,7 @@ namespace json {
         class ArrayContext : public BaseContext {
         public:
             explicit ArrayContext(Builder& builder)
-                : BaseContext(builder) {
-            }
+                : BaseContext(builder) {}
 
             auto Build() = delete;
 
@@ -155,8 +149,7 @@ namespace json {
         class KeyContext : public BaseContext {
         public:
             explicit KeyContext(Builder& builder)
-                : BaseContext(builder) {
-            }
+                : BaseContext(builder) {}
 
             auto Build() = delete;
 
@@ -175,36 +168,42 @@ namespace json {
 
 //JSON builder end
 
-namespace json {
-    class Reader {
+namespace requesthandler {
+    using namespace std::literals;
+
+    class RequestHandler {
     public:
-        explicit Reader(transport::Catalogue& catalogue);
+        explicit RequestHandler(transport::Catalogue& catalogue);
 
-        void Read(std::istream& input_stream);
+        json::Document GetDocument();
 
-        void BuildJSON(std::ostream& output_stream) const;
+        void PrepareStop(int request_id, std::string_view stop_name);
+
+        void PrepareRoute(int request_id, std::string_view route_number);
+
+        void PrepareMap(int request_id, const std::string& str);
 
     private:
         transport::Catalogue& catalogue_;
-        mutable Builder builder_;
+        json::Builder builder_;
 
-        void ProcessRenderRequests(const Node& render_settings) const;
+        struct RouteInfo {
+            int stop_count, unique_stop_count;
+            double route_length, curvature;
+        };
 
-        static std::vector<std::string> ConstructColorPalette(const Array& nodes_array);
+        RouteInfo GetRouteInfo(std::string_view route_number) const;
 
-        void ProcessBaseRequests(const Node& base_requests) const;
+        static size_t CountStops(const transport::Route& route);
 
-        void AddDistance(const std::pair<const std::string *, const Node *>& pair) const;
+        static size_t CountUniqueStops(const transport::Route& route);
 
-        void AddStop(const Node& node,
-                     std::queue<std::pair<const std::string *, const Node *>>& distances_to_process) const;
+        [[nodiscard]] int GetBusRouteDistance(std::string_view route_number) const;
 
-        void AddBus(const Node& node) const;
+        [[nodiscard]] int GetBusRouteDistance(const transport::Route& route) const;
 
-        void ProcessStatRequests(const Node& stat_requests) const;
+        static double GetRouteGeoDistance(const transport::Route& route);
 
-        void GetStopInfo(const Node& node) const;
-
-        void GetBusInfo(const Node& node) const;
+        [[nodiscard]] double GetRouteCurvature(const transport::Route& route) const;
     };
 }

@@ -1,21 +1,20 @@
 #include "svg.h"
 
 namespace svg {
-
     using namespace std::literals;
 
     std::ostream& operator<<(std::ostream& out, StrokeLineCap value) {
         std::string_view sv;
         switch (value) {
-            case StrokeLineCap::BUTT:
-                sv = "butt"sv;
-                break;
-            case StrokeLineCap::ROUND:
-                sv = "round"sv;
-                break;
-            case StrokeLineCap::SQUARE:
-                sv = "square"sv;
-                break;
+        case StrokeLineCap::BUTT:
+            sv = "butt"sv;
+            break;
+        case StrokeLineCap::ROUND:
+            sv = "round"sv;
+            break;
+        case StrokeLineCap::SQUARE:
+            sv = "square"sv;
+            break;
         }
         return out << sv;
     }
@@ -23,21 +22,21 @@ namespace svg {
     std::ostream& operator<<(std::ostream& out, StrokeLineJoin value) {
         std::string_view sv;
         switch (value) {
-            case StrokeLineJoin::ARCS:
-                sv = "arcs"sv;
-                break;
-            case StrokeLineJoin::BEVEL:
-                sv = "bevel"sv;
-                break;
-            case StrokeLineJoin::MITER:
-                sv = "miter"sv;
-                break;
-            case StrokeLineJoin::MITER_CLIP:
-                sv = "miter-clip"sv;
-                break;
-            case StrokeLineJoin::ROUND:
-                sv = "round"sv;
-                break;
+        case StrokeLineJoin::ARCS:
+            sv = "arcs"sv;
+            break;
+        case StrokeLineJoin::BEVEL:
+            sv = "bevel"sv;
+            break;
+        case StrokeLineJoin::MITER:
+            sv = "miter"sv;
+            break;
+        case StrokeLineJoin::MITER_CLIP:
+            sv = "miter-clip"sv;
+            break;
+        case StrokeLineJoin::ROUND:
+            sv = "round"sv;
+            break;
         }
         return out << sv;
     }
@@ -51,7 +50,7 @@ namespace svg {
         context.out << std::endl;
     }
 
-// Circle
+    // Circle
 
     Circle& Circle::SetCenter(Point center) {
         center_ = center;
@@ -71,7 +70,7 @@ namespace svg {
         out << "/>"sv;
     }
 
-// Polyline
+    // Polyline
 
     Polyline& Polyline::AddPoint(Point point) {
         points_.push_back(point);
@@ -85,7 +84,8 @@ namespace svg {
         for (const Point& p : points_) {
             if (first) {
                 first = false;
-            } else {
+            }
+            else {
                 out << ' ';
             }
             out << p.x << ',' << p.y;
@@ -95,7 +95,7 @@ namespace svg {
         out << "/>"sv;
     }
 
-// Text
+    // Text
 
     Text& Text::SetPosition(Point pos) {
         position_ = pos;
@@ -148,7 +148,7 @@ namespace svg {
         out << "</text>"sv;
     }
 
-// Document
+    // Document
 
     void Document::AddPtr(std::unique_ptr<Object>&& obj) {
         objects_.push_back(std::move(obj));
@@ -165,31 +165,28 @@ namespace svg {
     }
 
     namespace detail {
-
         void HtmlEncodeString(std::ostream& out, std::string_view sv) {
             for (char c : sv) {
                 switch (c) {
-                    case '"':
-                        out << "&quot;"sv;
-                        break;
-                    case '<':
-                        out << "&lt;"sv;
-                        break;
-                    case '>':
-                        out << "&gt;"sv;
-                        break;
-                    case '&':
-                        out << "&amp;"sv;
-                        break;
-                    case '\'':
-                        out << "&apos;"sv;
-                        break;
-                    default:
-                        out.put(c);
+                case '"':
+                    out << "&quot;"sv;
+                    break;
+                case '<':
+                    out << "&lt;"sv;
+                    break;
+                case '>':
+                    out << "&gt;"sv;
+                    break;
+                case '&':
+                    out << "&amp;"sv;
+                    break;
+                case '\'':
+                    out << "&apos;"sv;
+                    break;
+                default:
+                    out.put(c);
                 }
             }
         }
-
-    }  // namespace detail
-
-}  // namespace svg
+    }
+}

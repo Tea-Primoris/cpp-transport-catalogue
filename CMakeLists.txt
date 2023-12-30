@@ -1,18 +1,15 @@
-cmake_minimum_required(VERSION 3.25)
-project(cpp_transport_catalogue)
+cmake_minimum_required(VERSION 3.27)
+project(transport_catalogue)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(cpp_transport_catalogue
-        main.cpp
-        domain.cpp
-        geo.cpp
-        json.cpp
-        json_reader.cpp
-        map_renderer.cpp
-        request_handler.cpp
-        svg.cpp
-        transport_catalogue.cpp
-)
-
+add_executable(transport_catalogue transport-catalogue/main.cpp
+        transport-catalogue/domain.cpp
+        transport-catalogue/geo.cpp
+        transport-catalogue/svg.cpp
+        transport-catalogue/transport_catalogue.cpp
+        transport-catalogue/json_reader.cpp
+        transport-catalogue/json.cpp
+        transport-catalogue/map_renderer.cpp
+        transport-catalogue/request_handler.cpp)
 add_subdirectory(tests)
