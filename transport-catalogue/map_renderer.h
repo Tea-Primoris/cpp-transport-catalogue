@@ -98,10 +98,10 @@ namespace renderer {
 
         void Render(std::ostream& out_stream) const;
 
-        void AddRouteToMap(const transport::Route& route);
+        void AddBusToMap(const transport::Bus& bus);
 
-        void AddRouteNumberAtStop(const std::string& text, geo::Coordinates coordinates, const std::string& color);
-        void AddRouteNumberToMap(const transport::Route& route);
+        void AddBusNumberAtStop(const std::string& text, geo::Coordinates coordinates, const std::string& color);
+        void AddBusNumberToMap(const transport::Bus& bus);
 
         void SetCurrentColor(const size_t color_number);
 
@@ -119,6 +119,6 @@ namespace renderer {
 
         std::string PickColor();
 
-        void DrawRouteLine(const transport::Route& route, const std::string& route_color);
+        void DrawBusLine(const transport::Bus& bus, const std::string& bus_color);
     };
 }

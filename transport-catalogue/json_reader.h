@@ -35,11 +35,11 @@ namespace jsonreader {
 
         void ProcessDistances(std::queue<std::pair<std::string, const json::Dict*>>& distances_to_process) const;
 
-        void ProcessRoutes(std::queue<const json::Dict*>& routes_to_process) const;
+        void ProcessBusses(std::queue<const json::Dict*>& busses_to_process) const;
 
         static std::vector<std::string> CreateStopsVector(const json::Array& stops);
 
-        void AddRouteToCatalogue(const json::Dict& stop_object) const;
+        void AddBusToCatalogue(const json::Dict& stop_object) const;
 
         void ProcessStatRequests(const json::Array& requests_array) const;
 
@@ -54,7 +54,7 @@ namespace jsonreader {
 
         void ConstructMapRenderer(const json::Dict& requests_array);
 
-        std::vector<std::shared_ptr<transport::Route>> GetSortedRoutes() const;
+        std::vector<std::shared_ptr<transport::Bus>> GetSortedBusses() const;
 
         std::vector<std::weak_ptr<transport::Stop>> GetSortedStops() const;
 

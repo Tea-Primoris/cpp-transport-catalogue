@@ -8,12 +8,12 @@ namespace renderer {
         map_.Render(out_stream);
     }
 
-    void MapRenderer::AddRouteToMap(const transport::Route& route) {
-        const std::string route_color = PickColor();
-        DrawRouteLine(route, route_color);
+    void MapRenderer::AddBusToMap(const transport::Bus& bus) {
+        const std::string bus_color = PickColor();
+        DrawBusLine(bus, bus_color);
     }
 
-    void MapRenderer::AddRouteNumberAtStop(const std::string& text, geo::Coordinates coordinates,
+    void MapRenderer::AddBusNumberAtStop(const std::string& text, geo::Coordinates coordinates,
                                            const std::string& color) {
         svg::Text basic_text;
         basic_text.SetData(text).SetPosition(projector_(coordinates)).SetOffset(settings_.bus_label_offset)
@@ -24,20 +24,20 @@ namespace renderer {
                  .SetStrokeColor(settings_.underlayer_color).SetStrokeWidth(settings_.underlayer_width)
                  .SetStrokeLineCap(svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
-        svg::Text route_number = basic_text;
-        route_number.SetFillColor(color);
+        svg::Text bus_number = basic_text;
+        bus_number.SetFillColor(color);
 
         map_.Add(substrate);
-        map_.Add(route_number);
+        map_.Add(bus_number);
     }
 
-    void MapRenderer::AddRouteNumberToMap(const transport::Route& route) {
+    void MapRenderer::AddBusNumberToMap(const transport::Bus& bus) {
         const std::string color = PickColor();
 
-        AddRouteNumberAtStop(route.number, route.stops.front().lock()->coordinates, color);
+        AddBusNumberAtStop(bus.number, bus.stops.front().lock()->coordinates, color);
 
-        if (!route.is_circular && route.stops.front().lock().get() != route.stops.back().lock().get()) {
-            AddRouteNumberAtStop(route.number, route.stops.back().lock()->coordinates, color);
+        if (!bus.is_circular && bus.stops.front().lock().get() != bus.stops.back().lock().get()) {
+            AddBusNumberAtStop(bus.number, bus.stops.back().lock()->coordinates, color);
         }
     }
 
@@ -74,22 +74,22 @@ namespace renderer {
         return color;
     }
 
-    void MapRenderer::DrawRouteLine(const transport::Route& route, const std::string& route_color) {
-        const auto& stops = route.stops;
+    void MapRenderer::DrawBusLine(const transport::Bus& bus, const std::string& bus_color) {
+        const auto& stops = bus.stops;
 
-        svg::Polyline route_line;
-        route_line.SetFillColor(svg::NoneColor).SetStrokeColor(route_color).SetStrokeWidth(settings_.line_width)
+        svg::Polyline bus_line;
+        bus_line.SetFillColor(svg::NoneColor).SetStrokeColor(bus_color).SetStrokeWidth(settings_.line_width)
                   .SetStrokeLineCap(svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
-        for (const std::weak_ptr<transport::Stop>& stop : route.stops) {
-            route_line.AddPoint(projector_(stop.lock()->coordinates));
+        for (const std::weak_ptr<transport::Stop>& stop : bus.stops) {
+            bus_line.AddPoint(projector_(stop.lock()->coordinates));
         }
-        if (!route.is_circular) {
+        if (!bus.is_circular) {
             std::for_each(stops.rbegin() + 1, stops.rend(), [&](const std::weak_ptr<transport::Stop>& stop) {
-                route_line.AddPoint(projector_.operator()(stop.lock()->coordinates));
+                bus_line.AddPoint(projector_.operator()(stop.lock()->coordinates));
             });
         }
 
-        map_.Add(route_line);
+        map_.Add(bus_line);
     }
 }

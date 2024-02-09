@@ -1,7 +1,7 @@
 #include "domain.h"
 
 namespace transport::details {
-    bool RouteComparator::operator()(const Route* lhs, const Route* rhs) const {
+    bool BusComparator::operator()(const Bus* lhs, const Bus* rhs) const {
         return lhs->number < rhs->number;
     }
 

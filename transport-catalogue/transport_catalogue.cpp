@@ -9,47 +9,47 @@ namespace transport {
     void Catalogue::AddStop(Stop&& stop) {
         stops_.push_back(std::make_shared<Stop>(std::move(stop)));
         std::weak_ptr added_stop = stops_.back();
-        stopnames_to_stops[added_stop.lock()->name] = std::move(added_stop);
+        stopnames_to_stops_[added_stop.lock()->name] = std::move(added_stop);
     }
 
     bool Catalogue::HasStop(std::string_view stop_name) const {
-        return stopnames_to_stops.find(stop_name) != stopnames_to_stops.end();
+        return stopnames_to_stops_.find(stop_name) != stopnames_to_stops_.end();
     }
 
     const Stop& Catalogue::GetStop(std::string_view stop_name) const {
-        return *stopnames_to_stops.at(stop_name).lock();
+        return *stopnames_to_stops_.at(stop_name).lock();
     }
 
     std::weak_ptr<Stop> Catalogue::GetStopWeak(std::string_view stop_name) const {
-        return stopnames_to_stops.at(stop_name).lock();
+        return stopnames_to_stops_.at(stop_name).lock();
     }
 
-    void Catalogue::AddRoute(Route&& route) {
-        routes_.push_back(std::make_shared<Route>(std::move(route)));
-        std::weak_ptr added_route = routes_.back();
-        for (const std::weak_ptr<Stop>& stop : added_route.lock()->stops) {
-            stop.lock()->passing_routes.emplace(added_route.lock().get());
+    void Catalogue::AddBus(Bus&& bus) {
+        busses_.push_back(std::make_shared<Bus>(std::move(bus)));
+        std::weak_ptr added_bus = busses_.back();
+        for (const std::weak_ptr<Stop>& stop : added_bus.lock()->stops) {
+            stop.lock()->passing_busses.emplace(added_bus.lock().get());
         }
-        routenumber_to_route[added_route.lock()->number] = std::move(added_route);
+        busnumber_to_bus_[added_bus.lock()->number] = std::move(added_bus);
     }
 
-    bool Catalogue::HasRoute(std::string_view route_number) const {
-        return routenumber_to_route.find(route_number) != routenumber_to_route.end();
+    bool Catalogue::HasBus(const std::string_view bus_number) const {
+        return busnumber_to_bus_.find(bus_number) != busnumber_to_bus_.end();
     }
 
-    void Catalogue::AddRoute(const std::string_view route_number, const std::vector<std::string>& stops,
+    void Catalogue::AddBus(const std::string_view bus_number, const std::vector<std::string>& stops,
                              const bool is_circular) {
-        Route new_route;
-        new_route.number = route_number;
+        Bus new_bus;
+        new_bus.number = bus_number;
         for (const std::string_view stop_name : stops) {
-            new_route.stops.push_back(GetStopWeak(stop_name));
+            new_bus.stops.push_back(GetStopWeak(stop_name));
         }
-        new_route.is_circular = is_circular;
-        AddRoute(std::move(new_route));
+        new_bus.is_circular = is_circular;
+        AddBus(std::move(new_bus));
     }
 
-    const Route& Catalogue::GetRoute(const std::string_view route_number) const {
-        return *routenumber_to_route.at(route_number).lock();
+    const Bus& Catalogue::GetBus(const std::string_view bus_number) const {
+        return *busnumber_to_bus_.at(bus_number).lock();
     }
 
     int Catalogue::GetDistanceBetweenStops(const Stop& from_stop, const Stop& to_stop) {
@@ -73,7 +73,7 @@ namespace transport {
         return stops_;
     }
 
-    const std::vector<std::shared_ptr<Route>>& Catalogue::GetAllRoutes() const {
-        return routes_;
+    const std::vector<std::shared_ptr<Bus>>& Catalogue::GetAllBusses() const {
+        return busses_;
     }
 }

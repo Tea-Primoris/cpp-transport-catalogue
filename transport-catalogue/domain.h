@@ -9,22 +9,22 @@
 namespace transport {
     struct Stop;
 
-    struct Route {
+    struct Bus {
         std::string number;
         std::vector<std::weak_ptr<Stop>> stops;
         bool is_circular = false;
     };
 
     namespace details {
-        struct RouteComparator {
-            bool operator()(const Route* lhs, const Route* rhs) const;
+        struct BusComparator {
+            bool operator()(const Bus* lhs, const Bus* rhs) const;
         };
     }
 
     struct Stop {
         std::string name;
         geo::Coordinates coordinates;
-        std::set<const Route*, details::RouteComparator> passing_routes = {};
+        std::set<const Bus*, details::BusComparator> passing_busses = {};
     };
 
     namespace details {

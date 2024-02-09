@@ -19,7 +19,7 @@ namespace requesthandler {
 
         void PrepareStop(int request_id, std::string_view stop_name);
 
-        void PrepareRoute(int request_id, std::string_view route_number);
+        void PrepareBus(int request_id, std::string_view bus_number);
 
         void PrepareMap(int request_id, const std::string& str);
 
@@ -27,23 +27,23 @@ namespace requesthandler {
         transport::Catalogue& catalogue_;
         json::Builder builder_;
 
-        struct RouteInfo {
+        struct BusInfo {
             int stop_count, unique_stop_count;
             double route_length, curvature;
         };
 
-        RouteInfo GetRouteInfo(std::string_view route_number) const;
+        BusInfo GetBusInfo(std::string_view bus_number) const;
 
-        static size_t CountStops(const transport::Route& route);
+        static size_t CountStops(const transport::Bus& bus);
 
-        static size_t CountUniqueStops(const transport::Route& route);
+        static size_t CountUniqueStops(const transport::Bus& bus);
 
-        [[nodiscard]] int GetBusRouteDistance(std::string_view route_number) const;
+        [[nodiscard]] int GetBusRouteDistance(std::string_view bus_number) const;
 
-        [[nodiscard]] int GetBusRouteDistance(const transport::Route& route) const;
+        [[nodiscard]] int GetBusRouteDistance(const transport::Bus& bus) const;
 
-        static double GetRouteGeoDistance(const transport::Route& route);
+        static double GetBusGeoDistance(const transport::Bus& bus);
 
-        [[nodiscard]] double GetRouteCurvature(const transport::Route& route) const;
+        [[nodiscard]] double GetBusCurvature(const transport::Bus& bus) const;
     };
 }

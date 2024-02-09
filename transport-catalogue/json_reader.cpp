@@ -21,7 +21,7 @@ namespace jsonreader {
 
     void JSONReader::ProcessBaseRequests(const json::Array& requests_array) const {
         std::queue<std::pair<std::string, const json::Dict*>> distances_to_process;
-        std::queue<const json::Dict*> routes_to_process;
+        std::queue<const json::Dict*> buses_to_process;
         for (const json::Node& node : requests_array) {
             const json::Dict& catalogue_object = node.AsDict();
             if (catalogue_object.at("type"s) == "Stop"s) {
@@ -30,11 +30,11 @@ namespace jsonreader {
                 distances_to_process.push(std::move(CreateDistancePair(catalogue_object)));
             }
             else if (catalogue_object.at("type"s) == "Bus"s) {
-                routes_to_process.push(&catalogue_object);
+                buses_to_process.push(&catalogue_object);
             }
         }
         ProcessDistances(distances_to_process);
-        ProcessRoutes(routes_to_process);
+        ProcessBusses(buses_to_process);
     }
 
     void JSONReader::AddStopToCatalogue(const json::Dict& stop_object) const {
@@ -64,11 +64,11 @@ namespace jsonreader {
         }
     }
 
-    void JSONReader::ProcessRoutes(std::queue<const json::Dict*>& routes_to_process) const {
-        while (!routes_to_process.empty()) {
-            const json::Dict& route = *routes_to_process.front();
-            AddRouteToCatalogue(route);
-            routes_to_process.pop();
+    void JSONReader::ProcessBusses(std::queue<const json::Dict*>& busses_to_process) const {
+        while (!busses_to_process.empty()) {
+            const json::Dict& bus = *busses_to_process.front();
+            AddBusToCatalogue(bus);
+            busses_to_process.pop();
         }
     }
 
@@ -80,11 +80,11 @@ namespace jsonreader {
         return stops_as_strings;
     }
 
-    void JSONReader::AddRouteToCatalogue(const json::Dict& stop_object) const {
-        const std::string route_number = stop_object.at("name"s).AsString();
+    void JSONReader::AddBusToCatalogue(const json::Dict& stop_object) const {
+        const std::string bus_number = stop_object.at("name"s).AsString();
         const std::vector stops(CreateStopsVector(stop_object.at("stops").AsArray()));
         const bool is_circular = stop_object.at("is_roundtrip"s).AsBool();
-        catalogue_.AddRoute(route_number, stops, is_circular);
+        catalogue_.AddBus(bus_number, stops, is_circular);
     }
 
     void JSONReader::ProcessStatRequests(const json::Array& requests_array) const {
@@ -95,9 +95,9 @@ namespace jsonreader {
                 request_handler_.PrepareStop(request_id, stop_name);
             }
             else if (request_object.AsDict().at("type"s) == "Bus"s) {
-                const std::string_view route_number(request_object.AsDict().at("name"s).AsString());
+                const std::string_view bus_number(request_object.AsDict().at("name"s).AsString());
                 const int request_id = request_object.AsDict().at("id"s).AsInt();
-                request_handler_.PrepareRoute(request_id, route_number);
+                request_handler_.PrepareBus(request_id, bus_number);
             }
             else if (request_object.AsDict().at("type"s) == "Map"s) {
                 const int request_id = request_object.AsDict().at("id"s).AsInt();
@@ -111,7 +111,7 @@ namespace jsonreader {
     renderer::SphereProjector JSONReader::GenerateSphereProjector(double width, double height, double padding) const {
         std::vector<geo::Coordinates> coords;
         for (const std::weak_ptr<transport::Stop> stop : catalogue_.GetAllStops()) {
-            if (!stop.lock()->passing_routes.empty()) {
+            if (!stop.lock()->passing_busses.empty()) {
                 coords.push_back(stop.lock()->coordinates);
             }
         }
@@ -178,19 +178,19 @@ namespace jsonreader {
         map_renderer_ = std::make_shared<renderer::MapRenderer>(std::move(render_settings), projector);
     }
 
-    std::vector<std::shared_ptr<transport::Route>> JSONReader::GetSortedRoutes() const {
-        std::vector<std::shared_ptr<transport::Route>> sorted_routes = catalogue_.GetAllRoutes();
-        std::sort(sorted_routes.begin(), sorted_routes.end(),
-                  [](const std::weak_ptr<transport::Route>& lhs, const std::weak_ptr<transport::Route>& rhs) {
+    std::vector<std::shared_ptr<transport::Bus>> JSONReader::GetSortedBusses() const {
+        std::vector<std::shared_ptr<transport::Bus>> sorted_busses = catalogue_.GetAllBusses();
+        std::sort(sorted_busses.begin(), sorted_busses.end(),
+                  [](const std::weak_ptr<transport::Bus>& lhs, const std::weak_ptr<transport::Bus>& rhs) {
                       return lhs.lock()->number < rhs.lock()->number;
                   });
-        return sorted_routes;
+        return sorted_busses;
     }
 
     std::vector<std::weak_ptr<transport::Stop>> JSONReader::GetSortedStops() const {
         std::vector<std::weak_ptr<transport::Stop>> sorted_stops;
         for (std::weak_ptr<transport::Stop> stop : catalogue_.GetAllStops()) {
-            if (!stop.lock()->passing_routes.empty()) {
+            if (!stop.lock()->passing_busses.empty()) {
                 sorted_stops.push_back(stop);
             }
         }
@@ -204,15 +204,15 @@ namespace jsonreader {
     void JSONReader::ProcessRenderSettings(const json::Dict& requests_array) {
         ConstructMapRenderer(requests_array);
 
-        const std::vector sorted_routes = std::move(GetSortedRoutes());
+        const std::vector sorted_busses = std::move(GetSortedBusses());
 
-        for (std::weak_ptr<transport::Route> route : sorted_routes) {
-            map_renderer_->AddRouteToMap(*route.lock());
+        for (std::weak_ptr<transport::Bus> bus : sorted_busses) {
+            map_renderer_->AddBusToMap(*bus.lock());
         }
         map_renderer_->SetCurrentColor(0);
 
-        for (std::weak_ptr<transport::Route> route : sorted_routes) {
-            map_renderer_->AddRouteNumberToMap(*route.lock());
+        for (std::weak_ptr<transport::Bus> bus : sorted_busses) {
+            map_renderer_->AddBusNumberToMap(*bus.lock());
         }
         map_renderer_->SetCurrentColor(0);
 

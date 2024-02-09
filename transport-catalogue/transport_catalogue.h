@@ -15,28 +15,28 @@ namespace transport {
 
         const Stop& GetStop(std::string_view stop_name) const;
 
-        void AddRoute(Route&& route);
+        void AddBus(Bus&& bus);
 
-        bool HasRoute(std::string_view route_number) const;
+        bool HasBus(std::string_view bus_number) const;
 
-        void AddRoute(std::string_view route_number, const std::vector<std::string>& stops, bool is_circular);
+        void AddBus(std::string_view bus_number, const std::vector<std::string>& stops, bool is_circular);
 
-        const Route& GetRoute(std::string_view route_number) const;
+        const Bus& GetBus(std::string_view bus_number) const;
 
         int GetDistanceBetweenStops(const Stop& from_stop, const Stop& to_stop);
 
         const std::vector<std::shared_ptr<Stop>>& GetAllStops() const;
 
-        const std::vector<std::shared_ptr<Route>>& GetAllRoutes() const;
+        const std::vector<std::shared_ptr<Bus>>& GetAllBusses() const;
 
     private:
         std::vector<std::shared_ptr<Stop>> stops_;
-        std::unordered_map<std::string_view, std::weak_ptr<Stop>> stopnames_to_stops;
+        std::unordered_map<std::string_view, std::weak_ptr<Stop>> stopnames_to_stops_;
 
         std::unordered_map<std::pair<const Stop*, const Stop*>, int, details::StopPtrHasher> distances_;
 
-        std::vector<std::shared_ptr<Route>> routes_;
-        std::unordered_map<std::string_view, std::weak_ptr<Route>> routenumber_to_route;
+        std::vector<std::shared_ptr<Bus>> busses_;
+        std::unordered_map<std::string_view, std::weak_ptr<Bus>> busnumber_to_bus_;
 
         std::weak_ptr<Stop> GetStopWeak(std::string_view stop_name) const;
     };
