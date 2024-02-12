@@ -6,6 +6,7 @@
 #include "geo.h"
 #include "json.h"
 #include "json_builder.h"
+#include "transport_router.h"
 
 
 namespace requesthandler {
@@ -22,6 +23,10 @@ namespace requesthandler {
         void PrepareBus(int request_id, std::string_view bus_number);
 
         void PrepareMap(int request_id, const std::string& str);
+
+        void PrepareRoute(int request_id, double total_time, const std::vector<transport::RouteItem>& items);
+
+        void PrepareError(int request_id, std::string error_message);
 
     private:
         transport::Catalogue& catalogue_;

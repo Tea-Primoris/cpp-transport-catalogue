@@ -8,6 +8,7 @@
 #include "map_renderer.h"
 #include "request_handler.h"
 #include "json.h"
+#include "transport_router.h"
 
 namespace jsonreader {
     using namespace std::literals;
@@ -26,6 +27,7 @@ namespace jsonreader {
         transport::Catalogue& catalogue_;
         requesthandler::RequestHandler& request_handler_;
         std::shared_ptr<renderer::MapRenderer> map_renderer_;
+        std::unique_ptr<transport::Router> router_;
 
         void ProcessBaseRequests(const json::Array& requests_array) const;
 
@@ -59,5 +61,9 @@ namespace jsonreader {
         std::vector<std::weak_ptr<transport::Stop>> GetSortedStops() const;
 
         void ProcessRenderSettings(const json::Dict& requests_array);
+
+        void GenerateRoutingGraph();
+
+        void ProcessRoutingSettings(const json::Dict& routing_settings);
     };
 }

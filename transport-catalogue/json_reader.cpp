@@ -1,5 +1,7 @@
 #include "json_reader.h"
 
+#include <memory>
+
 namespace jsonreader {
     void JSONReader::ReadInput(std::istream& input_stream) {
         const json::Document inputed_json_document(std::move(json::Load(input_stream)));
@@ -11,6 +13,9 @@ namespace jsonreader {
         const json::Dict& render_settings = requests.at("render_settings"s).AsDict();
         ProcessRenderSettings(render_settings);
 
+        const json::Dict& routing_settings = requests.at("routing_settings"s).AsDict();
+        ProcessRoutingSettings(routing_settings);
+
         const json::Array& stat_requests = requests.at("stat_requests"s).AsArray();
         ProcessStatRequests(stat_requests);
     }
@@ -20,13 +25,13 @@ namespace jsonreader {
     }
 
     void JSONReader::ProcessBaseRequests(const json::Array& requests_array) const {
-        std::queue<std::pair<std::string, const json::Dict*>> distances_to_process;
-        std::queue<const json::Dict*> buses_to_process;
+        std::queue<std::pair<std::string, const json::Dict *>> distances_to_process;
+        std::queue<const json::Dict *> buses_to_process;
         for (const json::Node& node : requests_array) {
             const json::Dict& catalogue_object = node.AsDict();
             if (catalogue_object.at("type"s) == "Stop"s) {
                 AddStopToCatalogue(catalogue_object);
-                std::pair<std::string, const json::Dict*> stop_to_distances;
+                std::pair<std::string, const json::Dict *> stop_to_distances;
                 distances_to_process.push(std::move(CreateDistancePair(catalogue_object)));
             }
             else if (catalogue_object.at("type"s) == "Bus"s) {
@@ -44,15 +49,15 @@ namespace jsonreader {
         catalogue_.AddStop(transport::Stop{stop_name, {latitude, longitide}});
     }
 
-    std::pair<std::string, const json::Dict*> JSONReader::CreateDistancePair(const json::Dict& stop_object) {
-        std::pair<std::string, const json::Dict*> stopname_to_distances;
+    std::pair<std::string, const json::Dict *> JSONReader::CreateDistancePair(const json::Dict& stop_object) {
+        std::pair<std::string, const json::Dict *> stopname_to_distances;
         stopname_to_distances.first = stop_object.at("name"s).AsString();
         stopname_to_distances.second = &stop_object.at("road_distances"s).AsDict();
         return stopname_to_distances;
     }
 
     void JSONReader::
-    ProcessDistances(std::queue<std::pair<std::string, const json::Dict*>>& distances_to_process) const {
+    ProcessDistances(std::queue<std::pair<std::string, const json::Dict *>>& distances_to_process) const {
         while (!distances_to_process.empty()) {
             const auto& stopname_to_distances = distances_to_process.front();
             const std::string from_stop = stopname_to_distances.first;
@@ -64,7 +69,7 @@ namespace jsonreader {
         }
     }
 
-    void JSONReader::ProcessBusses(std::queue<const json::Dict*>& busses_to_process) const {
+    void JSONReader::ProcessBusses(std::queue<const json::Dict *>& busses_to_process) const {
         while (!busses_to_process.empty()) {
             const json::Dict& bus = *busses_to_process.front();
             AddBusToCatalogue(bus);
@@ -104,6 +109,19 @@ namespace jsonreader {
                 std::ostringstream output_stream;
                 map_renderer_->Render(output_stream);
                 request_handler_.PrepareMap(request_id, output_stream.str());
+            }
+            else if (request_object.AsDict().at("type"s) == "Route"s) {
+                const int request_id = request_object.AsDict().at("id"s).AsInt();
+                const std::string_view from_stop = request_object.AsDict().at("from"s).AsString();
+                const std::string_view to_stop = request_object.AsDict().at("to"s).AsString();
+
+                const std::optional<transport::Route> route_info = router_->PlotRoute(from_stop, to_stop);
+                if (route_info.has_value()) {
+                    request_handler_.PrepareRoute(request_id, route_info.value().total_time, route_info.value().route_items);
+                }
+                else {
+                    request_handler_.PrepareError(request_id, "not found"s);
+                }
             }
         }
     }
@@ -166,9 +184,9 @@ namespace jsonreader {
         render_settings.stop_label_font_size = requests_array.at("stop_label_font_size"s).AsDouble();
         render_settings.stop_label_offset = GenerateOffsetPoint(requests_array.at("stop_label_offset"s).AsArray());
         render_settings.underlayer_color =
-            requests_array.at("underlayer_color"s).IsString()
-                ? requests_array.at("underlayer_color"s).AsString()
-                : GenerateColorStringFromArray(requests_array.at("underlayer_color"s).AsArray());
+                requests_array.at("underlayer_color"s).IsString()
+                    ? requests_array.at("underlayer_color"s).AsString()
+                    : GenerateColorStringFromArray(requests_array.at("underlayer_color"s).AsArray());
         render_settings.underlayer_width = requests_array.at("underlayer_width"s).AsDouble();
         render_settings.color_palette = GenerateColorPalette(requests_array.at("color_palette"s).AsArray());
 
@@ -224,5 +242,17 @@ namespace jsonreader {
         for (std::weak_ptr<transport::Stop> stop : sorted_stops) {
             map_renderer_->DrawStopName(*stop.lock());
         }
+    }
+
+    void JSONReader::GenerateRoutingGraph() {
+        const std::vector<std::shared_ptr<transport::Bus>> all_busses = catalogue_.GetAllBusses();
+        router_->PopulateGraph();
+    }
+
+    void JSONReader::ProcessRoutingSettings(const json::Dict& routing_settings) {
+        int bus_wait_time = routing_settings.at("bus_wait_time"s).AsInt();
+        int bus_velocity = routing_settings.at("bus_velocity"s).AsInt();
+        router_ = std::make_unique<transport::Router>(catalogue_, bus_wait_time, bus_velocity);
+        GenerateRoutingGraph();
     }
 }

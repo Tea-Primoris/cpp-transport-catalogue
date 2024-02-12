@@ -46,6 +46,33 @@ namespace requesthandler {
                 .Key("map"s).Value(str).EndDict();
     }
 
+    void RequestHandler::PrepareRoute(int request_id, double total_time,
+                                      const std::vector<transport::RouteItem>& items) {
+        builder_.StartDict().Key("request_id"s).Value(request_id)
+                .Key("total_time"s).Value(total_time)
+                .Key("items"s).StartArray();
+        for (transport::RouteItem item : items) {
+            builder_.StartDict()
+                    .Key("type"s).Value(item.type)
+                    .Key("time"s).Value(item.time);
+            if (item.type == "Wait"s) {
+                builder_.Key("stop_name"s).Value(item.stop_name);
+            }
+            else if (item.type == "Bus"s) {
+                builder_.Key("span_count"s).Value(item.span_count);
+                builder_.Key("bus"s).Value(item.bus);
+            }
+            builder_.EndDict();
+        }
+        builder_.EndArray();
+        builder_.EndDict();
+    }
+
+    void RequestHandler::PrepareError(int request_id, std::string error_message) {
+        builder_.StartDict().Key("request_id").Value(request_id)
+                .Key("error_message"s).Value(std::move(error_message)).EndDict();
+    }
+
     RequestHandler::BusInfo RequestHandler::GetBusInfo(std::string_view bus_number) const {
         const transport::Bus& bus = catalogue_.GetBus(bus_number);
         const int stop_count = static_cast<int>(CountStops(bus));
@@ -78,9 +105,9 @@ namespace requesthandler {
              stop_iterator != bus.stops.end(); stop_iterator = std::next(stop_iterator)) {
             const transport::Stop& from_stop = *std::prev(stop_iterator)->lock();
             const transport::Stop& to_stop = *stop_iterator->lock();
-            distance += catalogue_.GetDistanceBetweenStops(from_stop, to_stop);
+            distance += catalogue_.GetDistanceBetweenStops(from_stop, to_stop).value_or(0);
             if (!bus.is_circular) {
-                distance += catalogue_.GetDistanceBetweenStops(to_stop, from_stop);
+                distance += catalogue_.GetDistanceBetweenStops(to_stop, from_stop).value_or(0);
             }
         }
 

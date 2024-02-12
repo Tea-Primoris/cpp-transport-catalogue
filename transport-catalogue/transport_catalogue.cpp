@@ -1,8 +1,10 @@
 #include "transport_catalogue.h"
 
+#include <algorithm>
+
 namespace transport {
     void Catalogue::SetDistance(std::string_view from_stop, std::string_view to_stop, int distance) {
-        std::pair<const Stop* const, const Stop* const> from_to_pair(&GetStop(from_stop), &GetStop(to_stop));
+        std::pair<const Stop * const, const Stop * const> from_to_pair(&GetStop(from_stop), &GetStop(to_stop));
         distances_.emplace(from_to_pair, distance);
     }
 
@@ -38,7 +40,7 @@ namespace transport {
     }
 
     void Catalogue::AddBus(const std::string_view bus_number, const std::vector<std::string>& stops,
-                             const bool is_circular) {
+                           const bool is_circular) {
         Bus new_bus;
         new_bus.number = bus_number;
         for (const std::string_view stop_name : stops) {
@@ -52,17 +54,20 @@ namespace transport {
         return *busnumber_to_bus_.at(bus_number).lock();
     }
 
-    int Catalogue::GetDistanceBetweenStops(const Stop& from_stop, const Stop& to_stop) {
-        std::pair<const transport::Stop*, const transport::Stop*> stops_pair;
+    std::optional<int> Catalogue::GetDistanceBetweenStops(const Stop& from_stop, const Stop& to_stop) const {
+        std::pair<const Stop *, const Stop *> stops_pair;
         stops_pair.first = &from_stop;
         stops_pair.second = &to_stop;
 
-        const auto distance_iterator = distances_.find(stops_pair);
-        if (distance_iterator == distances_.end()) {
-            std::pair<const Stop*, const Stop*> reverse_stops_pair;
+        if (const auto distance_iterator = distances_.find(stops_pair); distance_iterator == distances_.end()) {
+            std::pair<const Stop *, const Stop *> reverse_stops_pair;
             reverse_stops_pair.first = stops_pair.second;
             reverse_stops_pair.second = stops_pair.first;
-            return distances_.at(reverse_stops_pair);
+            if (const auto reverse_stops_distance = distances_.find(reverse_stops_pair);
+                reverse_stops_distance != distances_.end()) {
+                return reverse_stops_distance->second;
+            }
+            return std::nullopt;
         }
         else {
             return distance_iterator->second;
