@@ -117,7 +117,8 @@ namespace jsonreader {
 
                 const std::optional<transport::Route> route_info = router_->PlotRoute(from_stop, to_stop);
                 if (route_info.has_value()) {
-                    request_handler_.PrepareRoute(request_id, route_info.value().total_time, route_info.value().route_items);
+                    request_handler_.PrepareRoute(request_id, route_info.value().total_time,
+                                                  route_info.value().route_items);
                 }
                 else {
                     request_handler_.PrepareError(request_id, "not found"s);
@@ -244,15 +245,10 @@ namespace jsonreader {
         }
     }
 
-    void JSONReader::GenerateRoutingGraph() {
-        const std::vector<std::shared_ptr<transport::Bus>> all_busses = catalogue_.GetAllBusses();
-        router_->PopulateGraph();
-    }
-
     void JSONReader::ProcessRoutingSettings(const json::Dict& routing_settings) {
-        int bus_wait_time = routing_settings.at("bus_wait_time"s).AsInt();
-        int bus_velocity = routing_settings.at("bus_velocity"s).AsInt();
-        router_ = std::make_unique<transport::Router>(catalogue_, bus_wait_time, bus_velocity);
-        GenerateRoutingGraph();
+        const int bus_wait_time = routing_settings.at("bus_wait_time"s).AsInt();
+        const int bus_velocity = routing_settings.at("bus_velocity"s).AsInt();
+        router_ =
+                std::make_unique<transport::Router>(transport::RouterSettings{catalogue_, bus_wait_time, bus_velocity});
     }
 }

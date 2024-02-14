@@ -19,27 +19,28 @@ namespace transport {
         std::vector<RouteItem> route_items;
     };
 
+    struct RouterSettings {
+        const Catalogue& catalogue;
+        int bus_wait_time;
+        int bus_velocity;
+    };
+
     class Router {
         using WeightType = double;
+        static constexpr double TO_MPH = 1000. / 60.;
 
     public:
         Router() = delete;
 
-        Router(const Catalogue& catalogue, const int bus_wait_time, const int bus_velocity);
-
-        void SetBusWaitTime(int bus_wait_time);
-        void SetBusVelocity(int bus_velocity);
-        [[nodiscard]] double GetBusWaitTime() const;
-        [[nodiscard]] double GetBusVelocity() const;
-
-        void PopulateGraph();
+        Router(const RouterSettings& settings);
 
         [[nodiscard]]
         std::optional<Route> PlotRoute(std::string_view from_stop,
                                        std::string_view to_stop) const;
 
     private:
-        double bus_wait_time_ = 0, bus_velocity_ = 0;
+        double bus_wait_time_ = 0;
+        double bus_velocity_ = 0;
         const Catalogue& catalogue_;
         graph::DirectedWeightedGraph<WeightType> graph_;
         std::unique_ptr<graph::Router<WeightType>> router_;
@@ -53,6 +54,8 @@ namespace transport {
         };
         std::unordered_map<graph::EdgeId, EdgeInfo> edgeid_to_edgeinfo_;
 
+        void BuildGraph();
+
         [[nodiscard]]
         std::optional<std::reference_wrapper<const graph::Edge<double>>> GetStopEdge(std::string_view stop_name) const;
 
@@ -64,7 +67,7 @@ namespace transport {
         [[nodiscard]]
         const graph::Edge<double>& GetOrCreateStopEdge(std::string_view stop_name);
 
-        void PopulateWithRoutes();
+        void AddRoutesToGraph();
 
         Route GenerateRouteInformation(const graph::Router<double>::RouteInfo& route_info) const;
 
@@ -77,7 +80,7 @@ namespace transport {
         const std::optional<int> distance = catalogue_.GetDistanceBetweenStopsOnOneRoute(from_stop, to_stop, bus);
         double travel_time = bus_wait_time_;
         if (distance.has_value()) {
-            travel_time = static_cast<double>(distance.value()) / (bus_velocity_ * 1000 / 60);
+            travel_time = static_cast<double>(distance.value()) / (bus_velocity_ * TO_MPH);
         }
         const graph::VertexId from_id = GetOrCreateStopEdge(from_stop->lock()->name).to;
         const graph::VertexId to_id = GetOrCreateStopEdge(to_stop->lock()->name).from;

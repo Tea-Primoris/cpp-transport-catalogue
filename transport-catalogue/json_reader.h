@@ -62,8 +62,6 @@ namespace jsonreader {
 
         void ProcessRenderSettings(const json::Dict& requests_array);
 
-        void GenerateRoutingGraph();
-
         void ProcessRoutingSettings(const json::Dict& routing_settings);
     };
 }

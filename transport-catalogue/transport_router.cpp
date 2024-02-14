@@ -1,30 +1,15 @@
 #include "transport_router.h"
 
 namespace transport {
-    Router::Router(const Catalogue& catalogue, const int bus_wait_time, const int bus_velocity)
-        : bus_wait_time_(bus_wait_time), bus_velocity_(bus_velocity),
-          catalogue_(catalogue), graph_(catalogue.GetAllStops().size() * 2) {
+    Router::Router(const RouterSettings& settings)
+        : bus_wait_time_(settings.bus_wait_time), bus_velocity_(settings.bus_velocity),
+          catalogue_(settings.catalogue), graph_(settings.catalogue.GetAllStops().size() * 2) {
         vertexid_to_stopname_.reserve(catalogue_.GetAllStops().size() * 2);
+        BuildGraph();
     }
 
-    void Router::SetBusWaitTime(const int bus_wait_time) {
-        bus_wait_time_ = bus_wait_time;
-    }
-
-    void Router::SetBusVelocity(const int bus_velocity) {
-        bus_velocity_ = bus_velocity;
-    }
-
-    double Router::GetBusWaitTime() const {
-        return bus_wait_time_;
-    }
-
-    double Router::GetBusVelocity() const {
-        return bus_velocity_;
-    }
-
-    void Router::PopulateGraph() {
-        PopulateWithRoutes();
+    void Router::BuildGraph() {
+        AddRoutesToGraph();
         router_ = std::make_unique<graph::Router<WeightType>>(graph_);
     }
 
@@ -58,8 +43,8 @@ namespace transport {
 
     std::optional<Route> Router::PlotRoute(const std::string_view from_stop,
                                            const std::string_view to_stop) const {
-        const std::optional<std::reference_wrapper<const graph::Edge<double>>> from_edge = GetStopEdge(from_stop);
-        const std::optional<std::reference_wrapper<const graph::Edge<double>>> to_edge = GetStopEdge(to_stop);
+        const auto from_edge = GetStopEdge(from_stop);
+        const auto to_edge = GetStopEdge(to_stop);
         if (from_edge.has_value() && to_edge.has_value()) {
             const graph::VertexId from_id = from_edge.value().get().from;
             const graph::VertexId to_id = to_edge.value().get().from;
@@ -100,7 +85,7 @@ namespace transport {
         return CreateStopEdge(stop_name);
     }
 
-    void Router::PopulateWithRoutes() {
+    void Router::AddRoutesToGraph() {
         for (const std::weak_ptr<Bus> bus : catalogue_.GetAllBusses()) {
             const std::vector<std::weak_ptr<Stop>>& stops = bus.lock()->stops;
             for (auto from_iterator = stops.begin(); from_iterator != std::prev(stops.end());
