@@ -246,9 +246,9 @@ namespace jsonreader {
     }
 
     void JSONReader::ProcessRoutingSettings(const json::Dict& routing_settings) {
-        const int bus_wait_time = routing_settings.at("bus_wait_time"s).AsInt();
-        const int bus_velocity = routing_settings.at("bus_velocity"s).AsInt();
+        const double bus_wait_time = routing_settings.at("bus_wait_time"s).AsDouble();
+        const double bus_velocity = routing_settings.at("bus_velocity"s).AsDouble();
         router_ =
-                std::make_unique<transport::Router>(transport::RouterSettings{catalogue_, bus_wait_time, bus_velocity});
+                std::make_unique<transport::Router>(catalogue_, transport::RouterSettings{bus_wait_time, bus_velocity});
     }
 }

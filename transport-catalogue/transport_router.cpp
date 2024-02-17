@@ -1,9 +1,10 @@
 #include "transport_router.h"
 
 namespace transport {
-    Router::Router(const RouterSettings& settings)
-        : bus_wait_time_(settings.bus_wait_time), bus_velocity_(settings.bus_velocity),
-          catalogue_(settings.catalogue), graph_(settings.catalogue.GetAllStops().size() * 2) {
+    Router::Router(const Catalogue& catalogue, const RouterSettings& settings)
+        : settings_(settings),
+          catalogue_(catalogue),
+          graph_(catalogue_.GetAllStops().size() * 2) {
         vertexid_to_stopname_.reserve(catalogue_.GetAllStops().size() * 2);
         BuildGraph();
     }
@@ -73,7 +74,8 @@ namespace transport {
     const graph::Edge<double>& Router::CreateStopEdge(const std::string_view stop_name) {
         const graph::VertexId waiting_begin = GetVertextId(stop_name);
         const graph::VertexId waiting_stop = GetVertextId(stop_name);
-        const auto stop_edge_id = graph_.AddEdge({waiting_begin, waiting_stop, bus_wait_time_});
+        const auto stop_edge_id =
+            graph_.AddEdge({waiting_begin, waiting_stop, settings_.bus_wait_time});
         stopname_to_stop_edgeid_[stop_name] = stop_edge_id;
         return graph_.GetEdge(stop_edge_id);
     }
